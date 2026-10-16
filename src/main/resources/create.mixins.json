@@ -9,7 +9,6 @@
     "BlockLightEngineMixin",
     "BlockPlaceContextMixin",
     "BlocksMixin",
-    "BuiltInPackSourceMixin",
     "BuiltInRegistriesMixin",
     "ChunkMapMixin",
     "ComponentSerializationMixin",

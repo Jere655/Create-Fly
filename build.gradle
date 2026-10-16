@@ -159,8 +159,23 @@ sourceSets {
 
         // Optional Fabric-only integrations are excluded until each one has
         // a tested native NeoForge replacement.
-        java.exclude('com/zurrtum/create/compat/**')
+        // Optional integrations not ported to NeoForge yet.
+        // Keep Mods.java, AbstractComputerBehaviour and its event API because
+        // core Create classes reference them even when ComputerCraft is absent.
+        java.exclude('com/zurrtum/create/compat/CompatMod.java')
+        java.exclude('com/zurrtum/create/compat/trinkets/**')
+        java.exclude('com/zurrtum/create/compat/eiv/**')
+        java.exclude('com/zurrtum/create/compat/rei/**')
+        java.exclude('com/zurrtum/create/compat/computercraft/AllComputerDisplaySource.java')
+        java.exclude('com/zurrtum/create/compat/computercraft/AllComputerPeripherals.java')
+        java.exclude('com/zurrtum/create/compat/computercraft/ComputerDisplaySource.java')
+        java.exclude('com/zurrtum/create/compat/computercraft/implementation/**')
         java.exclude('com/zurrtum/create/client/compat/**')
+
+        // Fabric-specific resource/data-pack hooks. These need native
+        // NeoForge replacements later.
+        java.exclude('com/zurrtum/create/mixin/ReloadListenerMixin.java')
+        java.exclude('com/zurrtum/create/mixin/BuiltInPackSourceMixin.java')
         java.exclude('com/zurrtum/create/mixin/CreateIntegrationMixin.java')
         java.exclude('com/zurrtum/create/mixin/ArchitecturyMixin.java')
         java.exclude('com/zurrtum/create/mixin/JustEnoughItemsMixin.java')

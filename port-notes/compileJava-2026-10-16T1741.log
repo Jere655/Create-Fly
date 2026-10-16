@@ -1,0 +1,627 @@
+Downloading https://services.gradle.org/distributions/gradle-9.5.0-bin.zip
+.............10%.............20%..............30%.............40%.............50%..............60%.............70%..............80%.............90%.............100%
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/Users/Francis/.gradle/wrapper/dists/gradle-9.5.0-bin/bvnork1r7n8i6kp5cnkibsc9q/gradle-9.5.0/lib/native-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+
+Welcome to Gradle 9.5.0!
+
+Here are the highlights of this release:
+ - Task provenance in reports and failure messages
+ - Type-safe accessors for precompiled Kotlin Settings plugins
+
+For more details see https://docs.gradle.org/9.5.0/release-notes.html
+
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.5.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :
+Failed to parse MC version from NeoForge version 21.11.42. Using capabilities of latest known Minecraft version with Minecraft version 1.21.11.
+
+> Task :createMinecraftArtifacts
+Performing periodic cache maintenance on /Users/Francis/.gradle/caches/neoformruntime
+Cleaning intermediate results cache in /Users/Francis/.gradle/caches/neoformruntime/intermediate_results
+ Maximum age: 744h
+ Maximum cache size: 10 GiB
+ [0;2;3m77 files found[0m
+ [0;2;3m518 MiB overall size[0m
+ [0;2;3m0 expired keys found[0m
+[0;2;3m Deleted 46 outdated lock files
+Loaded 127 artifacts from /Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/build/tmp/createMinecraftArtifacts/nfrt_artifact_manifest.properties
+[1m*** Started working on [4mdownloadJson[0m[0m
+  ↓ https://launchermeta.mojang.com/mc/game/version_manifest_v2.json
+  ↓ https://piston-meta.mojang.com/v1/packages/718cd84b4912691fe5de829aab6876a4b7f6c5c4/1.21.11.json
+ [1m[92m✓[0m Completed [4mdownloadJson[0m in 0.80s
+[1m*** Started working on [4mdownloadClientMappings[0m[0m
+[1m*** Started working on [4mdownloadServer[0m[0m
+[1m*** Started working on [4mdownloadClient[0m[0m
+  ↓ https://piston-data.mojang.com/v1/objects/031a68bebf55d824f66d6573d8c752f0e1bf232a/client.txt
+  ↓ https://piston-data.mojang.com/v1/objects/64bb6d763bed0a9f1d632ec347938594144943ed/server.jar
+  ↓ https://piston-data.mojang.com/v1/objects/ba2df812c2d12e0219c489c4cd9a5e1f0760f5bd/client.jar
+ [1m[92m✓[0m Completed [4mdownloadClientMappings[0m in 3.97s
+[1m*** Started working on [4mmergeMappings[0m[0m
+ ↳ Running external tool net.neoforged.installertools:installertools:4.0.7:fatjar
+ [1m[92m✓[0m Completed [4mmergeMappings[0m in 2.33s
+ [1m[92m✓[0m Completed [4mdownloadServer[0m in 6.49s
+[1m*** Started working on [4mextractServer[0m[0m
+ ↳ Running external tool net.neoforged.installertools:installertools:4.0.7:fatjar
+ [1m[92m✓[0m Completed [4mextractServer[0m in 0.47s
+ [1m[92m✓[0m Completed [4mdownloadClient[0m in 10.11s
+[1m*** Started working on [4mstripClient[0m[0m
+[1m*** Started working on [4mstripServer[0m[0m
+ [1m[92m✓[0m Completed [4mstripServer[0m in 2.49s
+ [1m[92m✓[0m Completed [4mstripClient[0m in 3.34s
+[1m*** Started working on [4mmerge[0m[0m
+ ↳ Running external tool net.neoforged:mergetool:2.0.7:fatjar
+ [1m[92m✓[0m Completed [4mmerge[0m in 4.41s
+[1m*** Started working on [4mrename[0m[0m
+ ↳ Running external tool net.neoforged:AutoRenamingTool:2.0.17:all
+ [1m[92m✓[0m Completed [4mrename[0m in 6.23s
+[1m*** Started working on [4mdecompile[0m[0m
+ ↳ Running external tool org.vineflower:vineflower:1.11.2
+ [1m[92m✓[0m Completed [4mdecompile[0m in 64.89s
+[1m*** Started working on [4minject[0m[0m
+ [1m[92m✓[0m Completed [4minject[0m in 5.96s
+[1m*** Started working on [4mpatch[0m[0m
+ ↳ Running external tool io.codechicken:DiffPatch:2.0.0.36:all
+ [1m[92m✓[0m Completed [4mpatch[0m in 4.16s
+[1m*** Started working on [4mapplyNeoforgePatches[0m[0m
+ ↳ Running external tool io.codechicken:DiffPatch:2.0.0.36:all
+ [1m[92m✓[0m Completed [4mapplyNeoforgePatches[0m in 2.67s
+[1m*** Started working on [4mtransformSources[0m[0m
+ ↳ Running external tool net.neoforged.jst:jst-cli-bundle:1.0.74
+ [1m[92m✓[0m Completed [4mtransformSources[0m in 11.02s
+[1m*** Started working on [4mrecompile[0m[0m
+ 101 items on the compile classpath
+ 0 items on the sourcepath
+[1m*** Started working on [4msourcesWithNeoForge[0m[0m
+ Compiling 6623 source files
+ [1m[92m✓[0m Completed [4msourcesWithNeoForge[0m in 12.63s
+Copied 0 resource files
+ [1m[92m✓[0m Completed [4mrecompile[0m in 46.13s
+[1m*** Started working on [4mcompiledWithNeoForge[0m[0m
+ [1m[92m✓[0m Completed [4mcompiledWithNeoForge[0m in 12.88s
+[1m*** Started working on [4msourcesAndCompiledWithNeoForge[0m[0m
+ [1m[92m✓[0m Completed [4msourcesAndCompiledWithNeoForge[0m in 3.09s
+Total runtime: 177.94s
+
+
+> Task :compileJava
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/mixin/BlockLightEngineMixin.java:18: error: BlockDataLayerStorageMap has protected access in BlockLightSectionStorage
+public abstract class BlockLightEngineMixin extends LightEngine<BlockLightSectionStorage.BlockDataLayerStorageMap, BlockLightSectionStorage> {
+                                                                                        ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/mixin/NewMinecartBehaviorMixin.java:10: error: TrackIteration is not public in NewMinecartBehavior; cannot be accessed from outside package
+import net.minecraft.world.entity.vehicle.minecart.NewMinecartBehavior.TrackIteration;
+                                                                      ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/mixin/NewMinecartBehaviorMixin.java:27: error: TrackIteration is not public in NewMinecartBehavior; cannot be accessed from outside package
+        @Local TrackIteration trackIteration,
+               ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/recipe/ComponentsIngredient.java:24: error: cannot inherit from final Ingredient
+public class ComponentsIngredient extends Ingredient {
+                                          ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedDirectionInventoryBehaviour.java:5: error: package net.fabricmc.fabric.api.transfer.v1.item does not exist
+import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
+                                               ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedDirectionInventoryBehaviour.java:6: error: package net.fabricmc.fabric.api.transfer.v1.item does not exist
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+                                               ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedDirectionInventoryBehaviour.java:7: error: package net.fabricmc.fabric.api.transfer.v1.storage does not exist
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+                                                  ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedDirectionInventoryBehaviour.java:18: error: cannot find symbol
+    Storage<ItemVariant>[] sides = new Storage[7];
+    ^
+  symbol:   class Storage
+  location: class CachedDirectionInventoryBehaviour<T>
+  where T is a type-variable:
+    T extends SmartBlockEntity declared in class CachedDirectionInventoryBehaviour
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedDirectionInventoryBehaviour.java:18: error: cannot find symbol
+    Storage<ItemVariant>[] sides = new Storage[7];
+            ^
+  symbol:   class ItemVariant
+  location: class CachedDirectionInventoryBehaviour<T>
+  where T is a type-variable:
+    T extends SmartBlockEntity declared in class CachedDirectionInventoryBehaviour
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedDirectionInventoryBehaviour.java:25: error: cannot find symbol
+    public static @Nullable <T extends SmartBlockEntity> Storage<ItemVariant> get(T be, @Nullable Direction side) {
+                                                         ^
+  symbol:   class Storage
+  location: class CachedDirectionInventoryBehaviour<T>
+  where T is a type-variable:
+    T extends SmartBlockEntity declared in class CachedDirectionInventoryBehaviour
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedDirectionInventoryBehaviour.java:25: error: cannot find symbol
+    public static @Nullable <T extends SmartBlockEntity> Storage<ItemVariant> get(T be, @Nullable Direction side) {
+                                                                 ^
+  symbol:   class ItemVariant
+  location: class CachedDirectionInventoryBehaviour<T>
+  where T is a type-variable:
+    T extends SmartBlockEntity declared in class CachedDirectionInventoryBehaviour
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedDirectionInventoryBehaviour.java:29: error: cannot find symbol
+    public Storage<ItemVariant> get(Direction side) {
+           ^
+  symbol:   class Storage
+  location: class CachedDirectionInventoryBehaviour<T>
+  where T is a type-variable:
+    T extends SmartBlockEntity declared in class CachedDirectionInventoryBehaviour
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedDirectionInventoryBehaviour.java:29: error: cannot find symbol
+    public Storage<ItemVariant> get(Direction side) {
+                   ^
+  symbol:   class ItemVariant
+  location: class CachedDirectionInventoryBehaviour<T>
+  where T is a type-variable:
+    T extends SmartBlockEntity declared in class CachedDirectionInventoryBehaviour
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedInventoryBehaviour.java:5: error: package net.fabricmc.fabric.api.transfer.v1.item does not exist
+import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
+                                               ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedInventoryBehaviour.java:6: error: package net.fabricmc.fabric.api.transfer.v1.item does not exist
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+                                               ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedInventoryBehaviour.java:7: error: package net.fabricmc.fabric.api.transfer.v1.storage does not exist
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+                                                  ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedInventoryBehaviour.java:18: error: cannot find symbol
+    private Function<Direction, Storage<ItemVariant>> getter;
+                                ^
+  symbol:   class Storage
+  location: class CachedInventoryBehaviour<T>
+  where T is a type-variable:
+    T extends SmartBlockEntity declared in class CachedInventoryBehaviour
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedInventoryBehaviour.java:18: error: cannot find symbol
+    private Function<Direction, Storage<ItemVariant>> getter;
+                                        ^
+  symbol:   class ItemVariant
+  location: class CachedInventoryBehaviour<T>
+  where T is a type-variable:
+    T extends SmartBlockEntity declared in class CachedInventoryBehaviour
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedInventoryBehaviour.java:26: error: cannot find symbol
+    public static @Nullable <T extends SmartBlockEntity> Storage<ItemVariant> get(T be, @Nullable Direction side) {
+                                                         ^
+  symbol:   class Storage
+  location: class CachedInventoryBehaviour<T>
+  where T is a type-variable:
+    T extends SmartBlockEntity declared in class CachedInventoryBehaviour
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedInventoryBehaviour.java:26: error: cannot find symbol
+    public static @Nullable <T extends SmartBlockEntity> Storage<ItemVariant> get(T be, @Nullable Direction side) {
+                                                                 ^
+  symbol:   class ItemVariant
+  location: class CachedInventoryBehaviour<T>
+  where T is a type-variable:
+    T extends SmartBlockEntity declared in class CachedInventoryBehaviour
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedInventoryBehaviour.java:30: error: cannot find symbol
+    public Storage<ItemVariant> get(Direction side) {
+           ^
+  symbol:   class Storage
+  location: class CachedInventoryBehaviour<T>
+  where T is a type-variable:
+    T extends SmartBlockEntity declared in class CachedInventoryBehaviour
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedInventoryBehaviour.java:30: error: cannot find symbol
+    public Storage<ItemVariant> get(Direction side) {
+                   ^
+  symbol:   class ItemVariant
+  location: class CachedInventoryBehaviour<T>
+  where T is a type-variable:
+    T extends SmartBlockEntity declared in class CachedInventoryBehaviour
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedInventoryBehaviour.java:35: error: cannot find symbol
+    private Storage<ItemVariant> firstGet(Direction direction) {
+            ^
+  symbol:   class Storage
+  location: class CachedInventoryBehaviour<T>
+  where T is a type-variable:
+    T extends SmartBlockEntity declared in class CachedInventoryBehaviour
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedInventoryBehaviour.java:35: error: cannot find symbol
+    private Storage<ItemVariant> firstGet(Direction direction) {
+                    ^
+  symbol:   class ItemVariant
+  location: class CachedInventoryBehaviour<T>
+  where T is a type-variable:
+    T extends SmartBlockEntity declared in class CachedInventoryBehaviour
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedFluidInventoryBehaviour.java:8: error: package net.fabricmc.fabric.api.transfer.v1.fluid does not exist
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+                                                ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedFluidInventoryBehaviour.java:9: error: package net.fabricmc.fabric.api.transfer.v1.storage does not exist
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+                                                  ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedFluidInventoryBehaviour.java:18: error: cannot find symbol
+    private Function<Direction, Storage<FluidVariant>> getter;
+                                ^
+  symbol:   class Storage
+  location: class CachedFluidInventoryBehaviour<T>
+  where T is a type-variable:
+    T extends SmartBlockEntity declared in class CachedFluidInventoryBehaviour
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedFluidInventoryBehaviour.java:18: error: cannot find symbol
+    private Function<Direction, Storage<FluidVariant>> getter;
+                                        ^
+  symbol:   class FluidVariant
+  location: class CachedFluidInventoryBehaviour<T>
+  where T is a type-variable:
+    T extends SmartBlockEntity declared in class CachedFluidInventoryBehaviour
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedFluidInventoryBehaviour.java:26: error: cannot find symbol
+    public static @Nullable <T extends SmartBlockEntity> Storage<FluidVariant> get(T be, @Nullable Direction side) {
+                                                         ^
+  symbol:   class Storage
+  location: class CachedFluidInventoryBehaviour<T>
+  where T is a type-variable:
+    T extends SmartBlockEntity declared in class CachedFluidInventoryBehaviour
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedFluidInventoryBehaviour.java:26: error: cannot find symbol
+    public static @Nullable <T extends SmartBlockEntity> Storage<FluidVariant> get(T be, @Nullable Direction side) {
+                                                                 ^
+  symbol:   class FluidVariant
+  location: class CachedFluidInventoryBehaviour<T>
+  where T is a type-variable:
+    T extends SmartBlockEntity declared in class CachedFluidInventoryBehaviour
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedFluidInventoryBehaviour.java:30: error: cannot find symbol
+    public Storage<FluidVariant> get(Direction side) {
+           ^
+  symbol:   class Storage
+  location: class CachedFluidInventoryBehaviour<T>
+  where T is a type-variable:
+    T extends SmartBlockEntity declared in class CachedFluidInventoryBehaviour
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedFluidInventoryBehaviour.java:30: error: cannot find symbol
+    public Storage<FluidVariant> get(Direction side) {
+                   ^
+  symbol:   class FluidVariant
+  location: class CachedFluidInventoryBehaviour<T>
+  where T is a type-variable:
+    T extends SmartBlockEntity declared in class CachedFluidInventoryBehaviour
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedFluidInventoryBehaviour.java:35: error: cannot find symbol
+    private Storage<FluidVariant> firstGet(Direction direction) {
+            ^
+  symbol:   class Storage
+  location: class CachedFluidInventoryBehaviour<T>
+  where T is a type-variable:
+    T extends SmartBlockEntity declared in class CachedFluidInventoryBehaviour
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/foundation/blockEntity/behaviour/CachedFluidInventoryBehaviour.java:35: error: cannot find symbol
+    private Storage<FluidVariant> firstGet(Direction direction) {
+                    ^
+  symbol:   class FluidVariant
+  location: class CachedFluidInventoryBehaviour<T>
+  where T is a type-variable:
+    T extends SmartBlockEntity declared in class CachedFluidInventoryBehaviour
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/content/kinetics/deployer/DeployerFabricFakePlayer.java:4: error: package net.fabricmc.fabric.api.entity does not exist
+import net.fabricmc.fabric.api.entity.FakePlayer;
+                                     ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/content/kinetics/deployer/DeployerFabricFakePlayer.java:18: error: cannot find symbol
+public class DeployerFabricFakePlayer extends FakePlayer implements DeployerPlayer {
+                                              ^
+  symbol: class FakePlayer
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/content/kinetics/deployer/DeployerFabricFakePlayer.java:111: error: cannot find symbol
+    public void remove(RemovalReason reason) {
+                       ^
+  symbol:   class RemovalReason
+  location: class DeployerFabricFakePlayer
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/AllTransfer.java:18: error: package net.fabricmc.fabric.api.lookup.v1.block does not exist
+import net.fabricmc.fabric.api.lookup.v1.block.BlockApiCache;
+                                              ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/AllTransfer.java:19: error: package net.fabricmc.fabric.api.transfer.v1.fluid does not exist
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
+                                                ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/AllTransfer.java:20: error: package net.fabricmc.fabric.api.transfer.v1.fluid does not exist
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+                                                ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/AllTransfer.java:21: error: package net.fabricmc.fabric.api.transfer.v1.item does not exist
+import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
+                                               ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/AllTransfer.java:22: error: package net.fabricmc.fabric.api.transfer.v1.item does not exist
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+                                               ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/AllTransfer.java:23: error: package net.fabricmc.fabric.api.transfer.v1.storage does not exist
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+                                                  ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/AllTransfer.java:24: error: package net.fabricmc.loader.api does not exist
+import net.fabricmc.loader.api.FabricLoader;
+                              ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/AllTransfer.java:44: error: cannot find symbol
+    private static final Map<Storage<ItemVariant>, Container> WRAPPERS_ITEM = new MapMaker().weakValues().makeMap();
+                             ^
+  symbol:   class Storage
+  location: class AllTransfer
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/AllTransfer.java:44: error: cannot find symbol
+    private static final Map<Storage<ItemVariant>, Container> WRAPPERS_ITEM = new MapMaker().weakValues().makeMap();
+                                     ^
+  symbol:   class ItemVariant
+  location: class AllTransfer
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/AllTransfer.java:45: error: cannot find symbol
+    private static final Map<Storage<FluidVariant>, FluidInventory> WRAPPERS_FLUID = new MapMaker().weakValues()
+                             ^
+  symbol:   class Storage
+  location: class AllTransfer
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/AllTransfer.java:45: error: cannot find symbol
+    private static final Map<Storage<FluidVariant>, FluidInventory> WRAPPERS_FLUID = new MapMaker().weakValues()
+                                     ^
+  symbol:   class FluidVariant
+  location: class AllTransfer
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/api/registry/CreateRegisterPlugin.java:4: error: package net.fabricmc.loader.api does not exist
+import net.fabricmc.loader.api.FabricLoader;
+                              ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/api/registry/CreateRegisterPlugin.java:5: error: package net.fabricmc.loader.api.entrypoint does not exist
+import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
+                                         ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/api/entity/FakePlayerHandler.java:4: error: package net.fabricmc.fabric.api.entity does not exist
+import net.fabricmc.fabric.api.entity.FakePlayer;
+                                     ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/api/entity/FakePlayerHandler.java:5: error: package net.fabricmc.loader.api does not exist
+import net.fabricmc.loader.api.FabricLoader;
+                              ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/FluidInventoryStorage.java:6: error: package net.fabricmc.fabric.api.transfer.v1.fluid does not exist
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+                                                ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/FluidInventoryStorage.java:7: error: package net.fabricmc.fabric.api.transfer.v1.storage does not exist
+import net.fabricmc.fabric.api.transfer.v1.storage.SlottedStorage;
+                                                  ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/FluidInventoryStorage.java:8: error: package net.fabricmc.fabric.api.transfer.v1.storage.base does not exist
+import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
+                                                       ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/FluidInventoryStorage.java:9: error: package net.fabricmc.fabric.impl.transfer does not exist
+import net.fabricmc.fabric.impl.transfer.DebugMessages;
+                                        ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/FluidInventoryStorage.java:20: error: cannot find symbol
+public interface FluidInventoryStorage extends SlottedStorage<FluidVariant> {
+                                               ^
+  symbol: class SlottedStorage
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/FluidInventoryStorage.java:20: error: cannot find symbol
+public interface FluidInventoryStorage extends SlottedStorage<FluidVariant> {
+                                                              ^
+  symbol: class FluidVariant
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/FluidInventoryStorage.java:21: error: cannot find symbol
+    Map<FluidVariant, FluidStack> CACHE = new MapMaker().weakKeys().makeMap();
+        ^
+  symbol:   class FluidVariant
+  location: interface FluidInventoryStorage
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/FluidInventoryStorage.java:23: error: cannot find symbol
+    static FluidStack getCachedStack(FluidVariant variant) {
+                                     ^
+  symbol:   class FluidVariant
+  location: interface FluidInventoryStorage
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/FluidInventoryStorage.java:27: error: cannot find symbol
+    static FluidStack toStack(FluidVariant variant) {
+                              ^
+  symbol:   class FluidVariant
+  location: interface FluidInventoryStorage
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/FluidInventoryStorage.java:41: error: cannot find symbol
+    static boolean matches(FluidVariant variant, FluidStack stack) {
+                           ^
+  symbol:   class FluidVariant
+  location: interface FluidInventoryStorage
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/FluidInventoryStorage.java:56: error: cannot find symbol
+    List<SingleSlotStorage<FluidVariant>> getSlots();
+         ^
+  symbol:   class SingleSlotStorage
+  location: interface FluidInventoryStorage
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/FluidInventoryStorage.java:56: error: cannot find symbol
+    List<SingleSlotStorage<FluidVariant>> getSlots();
+                           ^
+  symbol:   class FluidVariant
+  location: interface FluidInventoryStorage
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/FluidInventoryStorage.java:64: error: cannot find symbol
+    default SingleSlotStorage<FluidVariant> getSlot(int slot) {
+            ^
+  symbol:   class SingleSlotStorage
+  location: interface FluidInventoryStorage
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/FluidInventoryStorage.java:64: error: cannot find symbol
+    default SingleSlotStorage<FluidVariant> getSlot(int slot) {
+                              ^
+  symbol:   class FluidVariant
+  location: interface FluidInventoryStorage
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:9: error: package net.fabricmc.fabric.api.transfer.v1.item does not exist
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+                                               ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:10: error: package net.fabricmc.fabric.api.transfer.v1.storage does not exist
+import net.fabricmc.fabric.api.transfer.v1.storage.SlottedStorage;
+                                                  ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:11: error: package net.fabricmc.fabric.api.transfer.v1.storage does not exist
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+                                                  ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:12: error: package net.fabricmc.fabric.api.transfer.v1.storage does not exist
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
+                                                  ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:13: error: package net.fabricmc.fabric.api.transfer.v1.storage.base does not exist
+import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
+                                                       ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:14: error: package net.fabricmc.fabric.api.transfer.v1.transaction does not exist
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+                                                      ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:15: error: package net.fabricmc.fabric.impl.transfer.item does not exist
+import net.fabricmc.fabric.impl.transfer.item.ItemVariantImpl;
+                                             ^
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:28: error: cannot find symbol
+public abstract class InventoryWrapper<T extends Storage<ItemVariant>, S extends StorageView<ItemVariant>> implements ItemInventory {
+                                                 ^
+  symbol: class Storage
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:28: error: cannot find symbol
+public abstract class InventoryWrapper<T extends Storage<ItemVariant>, S extends StorageView<ItemVariant>> implements ItemInventory {
+                                                         ^
+  symbol: class ItemVariant
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:28: error: cannot find symbol
+public abstract class InventoryWrapper<T extends Storage<ItemVariant>, S extends StorageView<ItemVariant>> implements ItemInventory {
+                                                                                 ^
+  symbol: class StorageView
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:28: error: cannot find symbol
+public abstract class InventoryWrapper<T extends Storage<ItemVariant>, S extends StorageView<ItemVariant>> implements ItemInventory {
+                                                                                             ^
+  symbol: class ItemVariant
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:37: error: cannot find symbol
+    public static Container of(Storage<ItemVariant> storage) {
+                               ^
+  symbol:   class Storage
+  location: class InventoryWrapper<T,S>
+  where T,S are type-variables:
+    T declared in class InventoryWrapper
+    S declared in class InventoryWrapper
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:37: error: cannot find symbol
+    public static Container of(Storage<ItemVariant> storage) {
+                                       ^
+  symbol:   class ItemVariant
+  location: class InventoryWrapper<T,S>
+  where T,S are type-variables:
+    T declared in class InventoryWrapper
+    S declared in class InventoryWrapper
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:592: error: cannot find symbol
+    protected abstract void insert(S view, ItemVariant variant, int amount, Transaction transaction);
+                                           ^
+  symbol:   class ItemVariant
+  location: class InventoryWrapper<T,S>
+  where T,S are type-variables:
+    T declared in class InventoryWrapper
+    S declared in class InventoryWrapper
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:592: error: cannot find symbol
+    protected abstract void insert(S view, ItemVariant variant, int amount, Transaction transaction);
+                                                                            ^
+  symbol:   class Transaction
+  location: class InventoryWrapper<T,S>
+  where T,S are type-variables:
+    T declared in class InventoryWrapper
+    S declared in class InventoryWrapper
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:1549: error: cannot find symbol
+    protected static class Direct extends InventoryWrapper<Storage<ItemVariant>, StorageView<ItemVariant>> {
+                                                           ^
+  symbol:   class Storage
+  location: class InventoryWrapper<T,S>
+  where T,S are type-variables:
+    T declared in class InventoryWrapper
+    S declared in class InventoryWrapper
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:1549: error: cannot find symbol
+    protected static class Direct extends InventoryWrapper<Storage<ItemVariant>, StorageView<ItemVariant>> {
+                                                                   ^
+  symbol:   class ItemVariant
+  location: class InventoryWrapper<T,S>
+  where T,S are type-variables:
+    T declared in class InventoryWrapper
+    S declared in class InventoryWrapper
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:1549: error: cannot find symbol
+    protected static class Direct extends InventoryWrapper<Storage<ItemVariant>, StorageView<ItemVariant>> {
+                                                                                 ^
+  symbol:   class StorageView
+  location: class InventoryWrapper<T,S>
+  where T,S are type-variables:
+    T declared in class InventoryWrapper
+    S declared in class InventoryWrapper
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:1549: error: cannot find symbol
+    protected static class Direct extends InventoryWrapper<Storage<ItemVariant>, StorageView<ItemVariant>> {
+                                                                                             ^
+  symbol:   class ItemVariant
+  location: class InventoryWrapper<T,S>
+  where T,S are type-variables:
+    T declared in class InventoryWrapper
+    S declared in class InventoryWrapper
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:1552: error: cannot find symbol
+        public Direct(Storage<ItemVariant> storage) {
+                      ^
+  symbol:   class Storage
+  location: class Direct
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:1552: error: cannot find symbol
+        public Direct(Storage<ItemVariant> storage) {
+                              ^
+  symbol:   class ItemVariant
+  location: class Direct
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:1557: error: cannot find symbol
+        protected StorageView<ItemVariant> getSlotView(int slot) {
+                  ^
+  symbol:   class StorageView
+  location: class Direct
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:1557: error: cannot find symbol
+        protected StorageView<ItemVariant> getSlotView(int slot) {
+                              ^
+  symbol:   class ItemVariant
+  location: class Direct
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:1584: error: cannot find symbol
+        protected void insert(StorageView<ItemVariant> view, ItemVariant variant, int amount, Transaction transaction) {
+                              ^
+  symbol:   class StorageView
+  location: class Direct
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:1584: error: cannot find symbol
+        protected void insert(StorageView<ItemVariant> view, ItemVariant variant, int amount, Transaction transaction) {
+                                          ^
+  symbol:   class ItemVariant
+  location: class Direct
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:1584: error: cannot find symbol
+        protected void insert(StorageView<ItemVariant> view, ItemVariant variant, int amount, Transaction transaction) {
+                                                             ^
+  symbol:   class ItemVariant
+  location: class Direct
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:1584: error: cannot find symbol
+        protected void insert(StorageView<ItemVariant> view, ItemVariant variant, int amount, Transaction transaction) {
+                                                                                              ^
+  symbol:   class Transaction
+  location: class Direct
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:1594: error: cannot find symbol
+    protected static class Slotted extends InventoryWrapper<SlottedStorage<ItemVariant>, SingleSlotStorage<ItemVariant>> {
+                                                            ^
+  symbol:   class SlottedStorage
+  location: class InventoryWrapper<T,S>
+  where T,S are type-variables:
+    T declared in class InventoryWrapper
+    S declared in class InventoryWrapper
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:1594: error: cannot find symbol
+    protected static class Slotted extends InventoryWrapper<SlottedStorage<ItemVariant>, SingleSlotStorage<ItemVariant>> {
+                                                                           ^
+  symbol:   class ItemVariant
+  location: class InventoryWrapper<T,S>
+  where T,S are type-variables:
+    T declared in class InventoryWrapper
+    S declared in class InventoryWrapper
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:1594: error: cannot find symbol
+    protected static class Slotted extends InventoryWrapper<SlottedStorage<ItemVariant>, SingleSlotStorage<ItemVariant>> {
+                                                                                         ^
+  symbol:   class SingleSlotStorage
+  location: class InventoryWrapper<T,S>
+  where T,S are type-variables:
+    T declared in class InventoryWrapper
+    S declared in class InventoryWrapper
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:1594: error: cannot find symbol
+    protected static class Slotted extends InventoryWrapper<SlottedStorage<ItemVariant>, SingleSlotStorage<ItemVariant>> {
+                                                                                                           ^
+  symbol:   class ItemVariant
+  location: class InventoryWrapper<T,S>
+  where T,S are type-variables:
+    T declared in class InventoryWrapper
+    S declared in class InventoryWrapper
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:1595: error: cannot find symbol
+        public Slotted(SlottedStorage<ItemVariant> storage) {
+                       ^
+  symbol:   class SlottedStorage
+  location: class Slotted
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:1595: error: cannot find symbol
+        public Slotted(SlottedStorage<ItemVariant> storage) {
+                                      ^
+  symbol:   class ItemVariant
+  location: class Slotted
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/infrastructure/transfer/InventoryWrapper.java:1600: error: cannot find symbol
+        protected SingleSlotStorage<ItemVariant> getSlotView(int slot) {
+                  ^
+  symbol:   class SingleSlotStorage
+  location: class Slotted
+/Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/compat/Mods.java:22: warning: [removal] get() in LoadingModList has been deprecated and marked for removal
+        loaded = LoadingModList.get().getModFileById(id) != null;
+                               ^
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+Fatal Error: Unable to find method iterator
+100 errors
+1 warning
+
+> Task :compileJava FAILED
+
+[Incubating] Problems report is available at: file:///Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').
+> Compilation failed; see the compiler output below.
+  /Users/Francis/Documents/Minecraft-1.21.11-Hybrid/CreateFly-NeoForge-port/Create-Fly/src/main/java/com/zurrtum/create/mixin/BlockLightEngineMixin.java:18: error: BlockDataLayerStorageMap has protected access in BlockLightSectionStorage
+  public abstract class BlockLightEngineMixin extends LightEngine<BlockLightSectionStorage.BlockDataLayerStorageMap, BlockLightSectionStorage> {
+                                                                                          ^
+  100 errors
+  1 warning
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+BUILD FAILED in 3m 56s
+2 actionable tasks: 2 executed
