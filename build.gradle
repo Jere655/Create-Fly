@@ -1,147 +1,211 @@
-import net.fabricmc.loom.task.RemapJarTask
-
 plugins {
-    id "net.fabricmc.fabric-loom-remap" version "${loom_version}"
+    id 'java-library'
+    id 'net.neoforged.moddev' version "${moddev_version}"
 }
 
 repositories {
-    maven {
-        name "REI"
-        url "https://maven.shedaniel.me/"
-        content {
-            includeGroup "me.shedaniel"
-            includeGroup "me.shedaniel.cloth"
-            includeGroup "dev.architectury"
+    exclusiveContent {
+        forRepository {
+            mavenCentral()
+        }
+        filter {
+            // Minecraft's standard libraries are published to Maven Central.
+            // Keep NeoForge's own modules and Mojang-owned libraries on their
+            // respective official repositories below.
+            includeGroupByRegex('^(?!(?:net\\.neoforged(?:\\.|$)|net\\.minecraftforge(?:\\.|$)|io\\.codechicken(?:\\.|$)|net\\.covers1624(?:\\.|$)|com\\.mojang(?:\\.|$)|org\\.lwjgl(?:\\.|$))).+$')
         }
     }
-    maven {
-        url "https://oss.zurrtum.com"
-        content {
-            includeGroup("cc.tweaked")
+    exclusiveContent {
+        forRepository {
+            maven { url = 'https://maven.neoforged.net/mojang-meta/' }
         }
-    }
-    maven {
-        name = 'Ladysnake Mods'
-        url = 'https://maven.ladysnake.org/releases'
-        content {
-            includeGroup "dev.onyxstudios.cardinal-components-api"
-            includeGroup "org.ladysnake.cardinal-components-api"
+        filter {
+            includeModule('net.neoforged', 'minecraft-dependencies')
         }
     }
     exclusiveContent {
         forRepository {
             maven {
-                name = "Modrinth"
-                url = "https://api.modrinth.com/maven"
+                url = 'https://repo.maven.apache.org/maven2/'
+                artifactUrls 'https://mojang-librariesminecraftnet.azureedge.net/'
             }
         }
         filter {
-            includeGroup "maven.modrinth"
+            includeGroup('org.lwjgl')
         }
     }
-}
-
-version = "$project.mod_version-$project.mod_id"
-group = project.maven_group
-
-base {
-    archivesName = "$project.archives_base_name-$project.minecraft_version"
-}
-
-loom {
-    splitEnvironmentSourceSets()
-    accessWidenerPath = file("src/main/resources/create.accesswidener")
-    mods {
-        create {
-            sourceSet sourceSets.main
-            sourceSet sourceSets.client
+    // Canonical Azure CDN name advertised by libraries.minecraft.net. It
+    // serves the same Mojang artifacts with a valid TLS certificate on this
+    // host, where the vanity hostname's TLS handshake is unreachable.
+    exclusiveContent {
+        forRepository {
+            maven { url = 'https://mojang-librariesminecraftnet.azureedge.net/' }
+        }
+        filter {
+            includeGroup('com.mojang')
         }
     }
-}
-
-tasks.register("serverJar", Jar) {
-    archiveClassifier = "server-dev"
-    destinationDirectory = layout.buildDirectory.dir("tmp/serverJar")
-    from sourceSets.main.output
-    from("LICENSE")
-    from("licenses") {
-        into "licenses"
+    exclusiveContent {
+        forRepository {
+            maven { url = 'https://maven.neoforged.net/releases' }
+        }
+        filter {
+            includeModule('io.codechicken', 'DiffPatch')
+            includeModule('net.covers1624', 'Quack')
+            includeModule('net.neoforged', 'neoforge')
+            includeModule('net.neoforged', 'neoform')
+            includeModule('net.neoforged', 'mergetool')
+            includeModule('net.neoforged', 'AutoRenamingTool')
+            includeModule('net.neoforged', 'JarJarSelector')
+            includeModule('net.neoforged', 'JarJarMetadata')
+            includeModule('net.neoforged', 'bus')
+            includeGroup('net.neoforged.jst')
+            includeGroup('net.neoforged.fancymodloader')
+            includeGroup('net.neoforged.accesstransformers')
+            includeGroup('net.neoforged.installertools')
+            includeModule('net.minecraftforge', 'mergetool')
+            includeModule('net.minecraftforge', 'srgutils')
+        }
     }
+    mavenCentral()
+    maven { url = 'https://maven.neoforged.net/releases' }
 }
 
-tasks.register('remapServerJar', RemapJarTask) {
-    dependsOn tasks.serverJar
-    inputFile = tasks.serverJar.archiveFile
-    archiveClassifier = "server"
-}
-
-tasks.build {
-    dependsOn tasks.remapServerJar
+// NeoForm normally obtains these ordinary Java tools through Mojang's library
+// CDN. The CDN endpoint is unreachable from this host, while Maven Central and
+// NeoForge's official repository are reachable. Resolving the same immutable
+// coordinates here lets Gradle reuse its shared local artifact cache without
+// substituting a third-party mirror.
+configurations {
+    neoFormToolBootstrap {
+        canBeConsumed = false
+        canBeResolved = true
+        transitive = false
+    }
 }
 
 dependencies {
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.officialMojangMappings()
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    if (project.compile_only_fabric_api.equals("true")) {
-        modCompileOnly fabricApi.module("fabric-rendering-fluids-v1", project.fabric_version)
-        modCompileOnly fabricApi.module("fabric-transfer-api-v1", project.fabric_version)
-        modCompileOnly fabricApi.module("fabric-events-interaction-v0", project.fabric_version)
-        modCompileOnly fabricApi.module("fabric-renderer-api-v1", project.fabric_version)
-        modCompileOnly fabricApi.module("fabric-renderer-indigo", project.fabric_version)
-        modCompileOnly fabricApi.module("fabric-recipe-api-v1", project.fabric_version)
-        modCompileOnly fabricApi.module("fabric-model-loading-api-v1", project.fabric_version)
-        modCompileOnly fabricApi.module("fabric-resource-loader-v1", project.fabric_version)
-    } else {
-        modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    neoFormToolBootstrap 'it.unimi.dsi:fastutil:8.3.1'
+    neoFormToolBootstrap 'org.apache.commons:commons-lang3:3.9'
+    neoFormToolBootstrap 'org.apache.commons:commons-compress:1.18'
+    neoFormToolBootstrap 'net.sf.jopt-simple:jopt-simple:5.0.4'
+    neoFormToolBootstrap 'org.ow2.asm:asm:9.5'
+    neoFormToolBootstrap 'org.ow2.asm:asm-tree:9.5'
+    neoFormToolBootstrap 'org.ow2.asm:asm-util:9.5'
+    neoFormToolBootstrap 'org.ow2.asm:asm-analysis:9.5'
+    neoFormToolBootstrap 'org.tukaani:xz:1.8'
+    neoFormToolBootstrap 'org.vineflower:vineflower:1.11.2'
+    neoFormToolBootstrap 'io.codechicken:DiffPatch:2.0.0.36:all@jar'
+    neoFormToolBootstrap 'net.covers1624:Quack:0.4.10.101'
+    neoFormToolBootstrap 'net.neoforged.jst:jst-cli-bundle:1.0.74'
+    neoFormToolBootstrap 'net.minecraftforge:mergetool:1.1.7:fatjar@jar'
+    neoFormToolBootstrap 'net.minecraftforge:srgutils:0.4.15'
+    neoFormToolBootstrap 'net.neoforged:neoforge:21.11.42:userdev@jar'
+    neoFormToolBootstrap 'net.neoforged:neoform:1.21.11-20251209.172050@zip'
+    neoFormToolBootstrap 'net.neoforged:mergetool:2.0.7'
+    neoFormToolBootstrap 'net.neoforged:AutoRenamingTool:2.0.17'
+    neoFormToolBootstrap 'net.neoforged.installertools:installertools:4.0.7'
+    neoFormToolBootstrap 'org.ow2.asm:asm:9.8'
+    neoFormToolBootstrap 'org.ow2.asm:asm-commons:9.8'
+    neoFormToolBootstrap 'org.ow2.asm:asm-tree:9.8'
+    neoFormToolBootstrap 'org.ow2.asm:asm-util:9.8'
+    neoFormToolBootstrap 'org.ow2.asm:asm-analysis:9.8'
+    neoFormToolBootstrap 'org.apache.logging.log4j:log4j-api:2.22.1'
+    neoFormToolBootstrap 'org.apache.logging.log4j:log4j-core:2.8.1'
+    neoFormToolBootstrap 'com.google.guava:guava:31.1-jre'
+    neoFormToolBootstrap 'com.google.code.gson:gson:2.10'
+    neoFormToolBootstrap 'org.slf4j:slf4j-api:2.0.9'
+    neoFormToolBootstrap 'ca.weblite:java-objc-bridge:1.1'
+}
+
+tasks.register('bootstrapNeoFormTools') {
+    group = 'build setup'
+    description = 'Resolves NeoForm tooling from Maven Central and NeoForge official repositories.'
+    doLast {
+        configurations.neoFormToolBootstrap.resolve()
     }
-    modCompileOnly "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
-    if (project.compile_only_rei.equals("false")) {
-        modClientRuntimeOnly "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = "${project.archives_base_name}-${project.minecraft_version}"
+}
+
+neoForge {
+    version = neo_version
+
+    mods {
+        create {
+            sourceSet(sourceSets.main)
+        }
     }
-    modCompileOnly "maven.modrinth:jei:${project.jei_version}"
-    modCompileOnly "maven.modrinth:eiv:${project.eiv_version}"
-    modCompileOnly "cc.tweaked:cc-tweaked-${project.cct_version}"
-    modCompileOnly "maven.modrinth:trinkets-canary:${project.trinkets_version}"
-    modCompileOnly "dev.onyxstudios.cardinal-components-api:cardinal-components-base:${project.cca_version}"
-    modClientCompileOnly "maven.modrinth:sodium:${project.sodium_version}"
-    modClientCompileOnly "maven.modrinth:iris:${project.iris_version}"
+
+    runs {
+        client { client() }
+        server {
+            server()
+            gameDirectory = project.file('run/server')
+            programArgument('--nogui')
+        }
+    }
+}
+
+sourceSets {
+    main {
+        java.srcDir('src/client/java')
+        resources.srcDir('src/client/resources')
+
+        // Optional Fabric-only integrations are excluded until each one has
+        // a tested native NeoForge replacement.
+        java.exclude('com/zurrtum/create/compat/**')
+        java.exclude('com/zurrtum/create/client/compat/**')
+        java.exclude('com/zurrtum/create/mixin/CreateIntegrationMixin.java')
+        java.exclude('com/zurrtum/create/mixin/ArchitecturyMixin.java')
+        java.exclude('com/zurrtum/create/mixin/JustEnoughItemsMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/FabricModelAccessMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/IrisPipelinesMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/HoldMyItemsMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/AnimationResourceLoaderMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/WrapperBlockStateModelMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/FabricBlockStateModelMixin.java')
+    }
 }
 
 processResources {
-    inputs.property "version", project.version
+    inputs.property 'version', project.version
 
-    filesMatching("fabric.mod.json") {
-        expand "version": inputs.properties.version
+    filesMatching('META-INF/neoforge.mods.toml') {
+        expand 'version': inputs.properties.version
     }
 
-    exclude "_data"
+    exclude '_data'
+    exclude 'fabric.mod.json'
+    exclude 'create.accesswidener'
 }
 
 tasks.withType(JavaCompile).configureEach {
-    it.options.release = 21
+    options.release = Integer.parseInt(java_version)
 }
 
 java {
     withSourcesJar()
-    tasks.named("sourcesJar", Jar) {
-        from("LICENSE")
-        from("licenses") {
-            into "licenses"
-        }
-        exclude '_data'
-        exclude 'assets'
-        exclude 'data'
-    }
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.toVersion(java_version)
+    targetCompatibility = JavaVersion.toVersion(java_version)
+}
+
+tasks.named('sourcesJar', Jar) {
+    from('LICENSE')
+    from('licenses') { into 'licenses' }
+    exclude '_data'
+    exclude 'assets'
+    exclude 'data'
 }
 
 jar {
-    inputs.property "archivesName", project.base.archivesName
+    inputs.property 'archivesName', project.base.archivesName
 
-    from("LICENSE")
-    from("licenses") {
-        into "licenses"
-    }
+    from('LICENSE')
+    from('licenses') { into 'licenses' }
 }

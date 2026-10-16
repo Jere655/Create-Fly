@@ -18,12 +18,16 @@ import com.zurrtum.create.client.ponder.Ponder;
 import com.zurrtum.create.client.ponder.foundation.PonderIndex;
 import com.zurrtum.create.client.vanillin.Vanillin;
 import com.zurrtum.create.content.trains.GlobalRailwayManager;
-import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.resources.Identifier;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 
 import static com.zurrtum.create.Create.MOD_ID;
 
-public class Create implements ClientModInitializer {
+@Mod(value = MOD_ID, dist = Dist.CLIENT)
+public class Create {
     public static SoulPulseEffectHandler SOUL_PULSE_EFFECT_HANDLER;
     public static ValueSettingsClient VALUE_SETTINGS_HANDLER;
     public static SuperGlueSelectionHandler GLUE_HANDLER;
@@ -35,8 +39,11 @@ public class Create implements ClientModInitializer {
     public static ZapperRenderHandler ZAPPER_RENDER_HANDLER;
     public static ClientResourceReloadListener RESOURCE_RELOAD_LISTENER;
 
-    @Override
-    public void onInitializeClient() {
+    public Create(IEventBus modEventBus) {
+        modEventBus.addListener(this::onInitializeClient);
+    }
+
+    private void onInitializeClient(FMLClientSetupEvent event) {
         new Flywheel().onInitializeClient();
         new Ponder().onInitializeClient();
         new Vanillin().onInitializeClient();

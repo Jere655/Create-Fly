@@ -1,10 +1,10 @@
 package com.zurrtum.create.compat;
 
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.neoforged.fml.loading.LoadingModList;
 
 import java.util.Locale;
 
@@ -19,7 +19,7 @@ public enum Mods {
 
     Mods() {
         id = name().toLowerCase(Locale.ROOT);
-        loaded = FabricLoader.getInstance().isModLoaded(id);
+        loaded = LoadingModList.get().getModFileById(id) != null;
     }
 
     /**

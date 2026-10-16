@@ -1,0 +1,29 @@
+modLoader = "javafml"
+loaderVersion = "[0,)"
+license = "CC0-1.0; upstream Create assets and third-party notices in licenses/ apply"
+issueTrackerURL = "https://github.com/ZurrTum/Create-Fly/issues"
+
+[[mods]]
+modId = "create"
+version = "${version}"
+displayName = "Create Fly NeoForge"
+displayURL = "https://github.com/ZurrTum/Create-Fly"
+logoFile = "assets/pack.png"
+authors = "ZurrTum, The Create Team"
+description = '''
+NeoForge port of the Create Fly 1.21.11 source baseline.
+'''
+
+[[dependencies.create]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.11.42,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.create]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.11]"
+ordering = "NONE"
+side = "BOTH"

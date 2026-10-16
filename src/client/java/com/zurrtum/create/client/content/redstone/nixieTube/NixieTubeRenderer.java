@@ -17,7 +17,6 @@ import com.zurrtum.create.content.redstone.nixieTube.DoubleFaceAttachedBlock.Dou
 import com.zurrtum.create.content.redstone.nixieTube.NixieTubeBlock;
 import com.zurrtum.create.content.redstone.nixieTube.NixieTubeBlockEntity;
 import com.zurrtum.create.content.trains.signal.SignalBlockEntity.SignalState;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.Font.DisplayMode;
 import net.minecraft.client.gui.font.TextRenderable;
@@ -37,6 +36,7 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.fml.ModList;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
@@ -421,7 +421,7 @@ public class NixieTubeRenderer implements BlockEntityRenderer<NixieTubeBlockEnti
     }
 
     public static class SignalDrawableState {
-        private static final boolean IRIS = FabricLoader.getInstance().isModLoaded("iris");
+        private static final boolean IRIS = ModList.get().isLoaded("iris");
         public RenderType layer;
         public RenderType layer2;
         public SuperByteBuffer signal;

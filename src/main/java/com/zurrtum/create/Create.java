@@ -32,17 +32,18 @@ import com.zurrtum.create.infrastructure.worldgen.AllConfiguredFeatures;
 import com.zurrtum.create.infrastructure.worldgen.AllFeatures;
 import com.zurrtum.create.infrastructure.worldgen.AllPlacedFeatures;
 import com.zurrtum.create.infrastructure.worldgen.AllPlacementModifiers;
-import net.fabricmc.api.ModInitializer;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
 import org.slf4j.Logger;
 
-public class Create implements ModInitializer {
+@Mod(Create.MOD_ID)
+public class Create {
     public static final String MOD_ID = "create";
     public static final String NAME = "Create";
     public static final Logger LOGGER = LogUtils.getLogger();
-    public static final String VERSION = FabricLoader.getInstance().getModContainer(MOD_ID).orElseThrow().getMetadata()
-        .getVersion().getFriendlyString().split("\\+")[0];
+    public static String VERSION = "unknown";
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     public static boolean Lazy = false;
 
@@ -53,11 +54,12 @@ public class Create implements ModInitializer {
     public static GlobalLogisticsManager LOGISTICS;
     public static ServerSchematicLoader SCHEMATIC_RECEIVER;
 
-    @Override
-    public void onInitialize() {
-        if (Lazy) {
-            register();
-        }
+    public Create(IEventBus modEventBus, ModContainer modContainer) {
+        VERSION = modContainer.getModInfo().getVersion().toString().split("\\+")[0];
+        // Fabric deferred this work through its registry bootstrap mixins.
+        // NeoForge owns the construction point, so registrations must happen
+        // exactly once here before common setup events are dispatched.
+        register();
         AllConfigs.register();
     }
 

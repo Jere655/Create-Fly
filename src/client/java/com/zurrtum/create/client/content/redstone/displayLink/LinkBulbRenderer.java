@@ -9,7 +9,6 @@ import com.zurrtum.create.client.catnip.render.CachedBuffers;
 import com.zurrtum.create.client.catnip.render.SuperByteBuffer;
 import com.zurrtum.create.client.foundation.render.CreateRenderTypes;
 import com.zurrtum.create.content.redstone.displayLink.LinkWithBulbBlockEntity;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -22,10 +21,11 @@ import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.fml.ModList;
 import org.jetbrains.annotations.Nullable;
 
 public class LinkBulbRenderer implements BlockEntityRenderer<LinkWithBulbBlockEntity, LinkBulbRenderer.LinkBulbRenderState> {
-    private static final boolean IRIS = FabricLoader.getInstance().isModLoaded("iris");
+    private static final boolean IRIS = ModList.get().isLoaded("iris");
 
     public LinkBulbRenderer(BlockEntityRendererProvider.Context context) {
     }

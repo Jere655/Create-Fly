@@ -41,7 +41,6 @@ import com.zurrtum.create.infrastructure.packet.c2s.StockKeeperCategoryHidingPac
 import com.zurrtum.create.infrastructure.packet.c2s.StockKeeperLockPacket;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -73,6 +72,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.neoforged.fml.ModList;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3x2f;
 import org.joml.Matrix3x2fStack;
@@ -105,8 +105,7 @@ public class StockKeeperRequestScreen extends AbstractSimiContainerScreen<StockK
     private static Consumer<String> searchConsumer;
     private static Function<Boolean, @Nullable String> searchSupplier;
     private static final boolean hasSearchSync = Util.make(() -> {
-        FabricLoader loader = FabricLoader.getInstance();
-        return loader.isModLoaded("jei") || loader.isModLoaded("roughlyenoughitems") || loader.isModLoaded("eiv");
+        return ModList.get().isLoaded("jei") || ModList.get().isLoaded("roughlyenoughitems") || ModList.get().isLoaded("eiv");
     });
 
     StockTickerBlockEntity blockEntity;
@@ -194,7 +193,7 @@ public class StockKeeperRequestScreen extends AbstractSimiContainerScreen<StockK
             }
         }
 
-        if (FabricLoader.getInstance().isModLoaded("eiv")) {
+        if (ModList.get().isLoaded("eiv")) {
             cursorSlot = new Slot(new ItemStackHandler(), 0, 0, 0);
         }
 

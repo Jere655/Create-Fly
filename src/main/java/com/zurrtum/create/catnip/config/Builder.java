@@ -4,7 +4,7 @@ import com.google.common.base.Splitter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import net.fabricmc.loader.api.FabricLoader;
+import net.neoforged.fml.loading.FMLPaths;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -27,9 +27,9 @@ public class Builder {
 
     Builder(String id, String type, boolean single) {
         if (single) {
-            this.configDir = FabricLoader.getInstance().getConfigDir().toFile();
+            this.configDir = FMLPaths.CONFIGDIR.get().toFile();
         } else {
-            this.configDir = new File(FabricLoader.getInstance().getConfigDir().toFile(), id);
+            this.configDir = new File(FMLPaths.CONFIGDIR.get().toFile(), id);
         }
         this.type = single ? id + "-" + type : type;
         if (configDir.exists()) {

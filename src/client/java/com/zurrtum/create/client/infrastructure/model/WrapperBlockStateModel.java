@@ -1,7 +1,5 @@
 package com.zurrtum.create.client.infrastructure.model;
 
-import com.zurrtum.create.client.compat.fabric.WrapperModel;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -14,7 +12,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.List;
 
 public abstract class WrapperBlockStateModel implements BlockStateModel, BlockStateModel.UnbakedRoot {
-    private static final boolean FABRIC = FabricLoader.getInstance().isModLoaded("fabric-model-loading-api-v1");
     protected BlockStateModel model;
     protected Entry entry;
 
@@ -81,11 +78,6 @@ public abstract class WrapperBlockStateModel implements BlockStateModel, BlockSt
     }
 
     public static BlockStateModel unwrapCompat(BlockStateModel model) {
-        if (FABRIC) {
-            while (model instanceof WrapperModel wrapper) {
-                model = wrapper.create$getWrapped();
-            }
-        }
         return model;
     }
 }
