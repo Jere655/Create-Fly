@@ -16,6 +16,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.equipment.ArmorMaterial;
 import net.minecraft.world.item.equipment.ArmorType;
+import net.neoforged.neoforge.event.entity.living.LivingBreatheEvent;
 
 import java.util.List;
 
@@ -54,6 +55,26 @@ public class DivingHelmetItem extends Item {
             return ItemStack.EMPTY;
         }
         return stack;
+    }
+
+    public static void onLivingBreathe(LivingBreatheEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+        if (player.getAbilities().invulnerable) {
+            return;
+        }
+        if (!(player.level() instanceof ServerLevel world)) {
+            return;
+        }
+
+        if (player.isInLava()) {
+            breatheInLava(player, world);
+        }
+
+        if (!event.canBreathe() && breatheUnderwater(player, world)) {
+            event.setCanBreathe(true);
+        }
     }
 
     public static void breatheInLava(ServerPlayer player, ServerLevel world) {

@@ -10,18 +10,15 @@ import com.zurrtum.create.AllDamageTypes;
 import com.zurrtum.create.AllSynchedDatas;
 import com.zurrtum.create.content.equipment.armor.CardboardArmorHandler;
 import com.zurrtum.create.content.equipment.armor.DivingBootsItem;
-import com.zurrtum.create.content.equipment.armor.DivingHelmetItem;
 import com.zurrtum.create.content.equipment.armor.NetheriteDivingHandler;
 import com.zurrtum.create.content.kinetics.deployer.DeployerPlayer;
 import com.zurrtum.create.foundation.block.LandingEffectControlBlock;
 import com.zurrtum.create.foundation.block.ScaffoldingControlBlock;
-import com.zurrtum.create.foundation.block.SlipperinessControlBlock;
 import com.zurrtum.create.foundation.block.SoundControlBlock;
 import com.zurrtum.create.foundation.item.SwingControlItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -36,7 +33,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -61,45 +57,6 @@ public abstract class LivingEntityMixin extends Entity {
 
     public LivingEntityMixin(EntityType<?> type, Level world) {
         super(type, world);
-    }
-
-    @WrapOperation(method = "travelInAir(Lnet/minecraft/world/phys/Vec3;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/Block;getFriction()F"))
-    private float getSlipperiness(Block block, Operation<Float> original, @Local BlockPos pos) {
-        if (block instanceof SlipperinessControlBlock controlBlock) {
-            return controlBlock.getSlipperiness(level(), pos);
-        }
-        return original.call(block);
-    }
-
-    @WrapOperation(method = "baseTick()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;isEyeInFluid(Lnet/minecraft/tags/TagKey;)Z"))
-    private boolean breatheInLava(
-        LivingEntity entity,
-        TagKey<Fluid> tagKey,
-        Operation<Boolean> original,
-        @Local ServerLevel serverWorld
-    ) {
-        if (original.call(entity, tagKey)) {
-            return true;
-        }
-        if (entity instanceof ServerPlayer serverPlayer && !serverPlayer.getAbilities().invulnerable && entity.isInLava()) {
-            DivingHelmetItem.breatheInLava(serverPlayer, serverWorld);
-        }
-        return false;
-    }
-
-    @WrapOperation(method = "baseTick()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/effect/MobEffectUtil;hasWaterBreathing(Lnet/minecraft/world/entity/LivingEntity;)Z"))
-    private boolean canBreatheInWater(
-        LivingEntity entity,
-        Operation<Boolean> original,
-        @Local ServerLevel serverWorld
-    ) {
-        if (original.call(entity)) {
-            return true;
-        }
-        if (entity instanceof ServerPlayer serverPlayer && !serverPlayer.getAbilities().invulnerable) {
-            return DivingHelmetItem.breatheUnderwater(serverPlayer, serverWorld);
-        }
-        return false;
     }
 
     @Inject(method = "collectEquipmentChanges()Ljava/util/Map;", at = @At(value = "INVOKE", target = "Ljava/util/Map;entrySet()Ljava/util/Set;"))

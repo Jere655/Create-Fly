@@ -9,6 +9,7 @@ import com.zurrtum.create.api.stress.BlockStressValues;
 import com.zurrtum.create.content.decoration.encasing.EncasingRegistry;
 import com.zurrtum.create.content.equipment.armor.AllArmorMaterials;
 import com.zurrtum.create.content.equipment.armor.AllEquipmentAssetKeys;
+import com.zurrtum.create.content.equipment.armor.DivingHelmetItem;
 import com.zurrtum.create.content.equipment.potatoCannon.AllPotatoProjectileBlockHitActions;
 import com.zurrtum.create.content.equipment.potatoCannon.AllPotatoProjectileEntityHitActions;
 import com.zurrtum.create.content.equipment.potatoCannon.AllPotatoProjectileRenderModes;
@@ -35,6 +36,7 @@ import net.minecraft.server.MinecraftServer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import org.slf4j.Logger;
 
@@ -59,6 +61,7 @@ public class Create {
         VERSION = modContainer.getModInfo().getVersion().toString().split("\\+")[0];
         modEventBus.addListener(AllTransfer::registerCapabilities);
         AllFluidTypes.register(modEventBus);
+        NeoForge.EVENT_BUS.addListener(DivingHelmetItem::onLivingBreathe);
         CreateRegistries.register(modEventBus);
         // Fabric initialized these static registries during loader bootstrap.
         // NeoForge opens registries during RegisterEvent, after mod construction.
