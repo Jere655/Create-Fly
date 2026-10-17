@@ -34,7 +34,6 @@
     "GlStateManagerMixin",
     "GuiGraphicsMixin",
     "GuiMixin",
-    "GuiRendererMixin",
     "HumanoidArmorLayerMixin",
     "IntegratedServerMixin",
     "ItemInHandRendererMixin",

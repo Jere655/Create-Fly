@@ -46,11 +46,9 @@ import com.zurrtum.create.client.content.trains.CameraDistanceModifier;
 import com.zurrtum.create.client.content.trains.GlobalRailwayManagerClient;
 import com.zurrtum.create.client.content.trains.TrainHUD;
 import com.zurrtum.create.client.content.trains.entity.TrainRelocatorClient;
-import com.zurrtum.create.client.content.trains.schedule.hat.TrainHatInfoReloadListener;
 import com.zurrtum.create.client.content.trains.track.CurvedTrackInteraction;
 import com.zurrtum.create.client.content.trains.track.TrackPlacementClient;
 import com.zurrtum.create.client.content.trains.track.TrackTargetingClient;
-import com.zurrtum.create.client.flywheel.backend.compile.FlwProgramsReloader;
 import com.zurrtum.create.client.flywheel.impl.BackendManagerImpl;
 import com.zurrtum.create.client.flywheel.impl.FlwImpl;
 import com.zurrtum.create.client.flywheel.impl.visualization.VisualizationEventHandler;
@@ -62,7 +60,6 @@ import com.zurrtum.create.client.foundation.blockEntity.behaviour.scrollValue.Sc
 import com.zurrtum.create.client.foundation.blockEntity.behaviour.scrollValue.ScrollValueRenderer;
 import com.zurrtum.create.client.foundation.sound.SoundScapes;
 import com.zurrtum.create.client.foundation.utility.ServerSpeedProvider;
-import com.zurrtum.create.client.model.obj.ObjLoader;
 import com.zurrtum.create.client.ponder.Ponder;
 import com.zurrtum.create.client.ponder.foundation.PonderIndex;
 import com.zurrtum.create.client.ponder.foundation.PonderTooltipHandler;
@@ -79,10 +76,8 @@ import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.server.packs.resources.ReloadableResourceManager;
 import net.minecraft.world.InteractionHand;
 import org.jetbrains.annotations.Nullable;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -97,10 +92,6 @@ public abstract class MinecraftClientMixin {
     public ClientLevel level;
 
     @Shadow
-    @Final
-    private ReloadableResourceManager resourceManager;
-
-    @Shadow
     @Nullable
     public LocalPlayer player;
 
@@ -113,15 +104,6 @@ public abstract class MinecraftClientMixin {
     @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/packs/resources/ReloadableResourceManager;createReload(Ljava/util/concurrent/Executor;Ljava/util/concurrent/Executor;Ljava/util/concurrent/CompletableFuture;Ljava/util/List;)Lnet/minecraft/server/packs/resources/ReloadInstance;"))
     private void flywheel$onBeginInitialResourceReload(GameConfig args, CallbackInfo ci) {
         FlwImpl.freezeRegistries();
-    }
-
-    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/Window;updateVsync(Z)V"))
-    private void register(GameConfig args, CallbackInfo ci) {
-        resourceManager.registerReloadListener(ObjLoader.INSTANCE);
-        resourceManager.registerReloadListener(FlwProgramsReloader.INSTANCE);
-        resourceManager.registerReloadListener(Create.RESOURCE_RELOAD_LISTENER);
-        resourceManager.registerReloadListener(TrainHatInfoReloadListener.LISTENER);
-        resourceManager.registerReloadListener(Ponder.RESOURCE_RELOAD_LISTENER);
     }
 
     @Inject(method = "onGameLoadFinished(Lnet/minecraft/client/Minecraft$GameLoadCookie;)V", at = @At("HEAD"))

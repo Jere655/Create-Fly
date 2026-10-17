@@ -7,6 +7,7 @@ import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import com.zurrtum.create.client.infrastructure.model.WrapperBlockStateModel;
 import com.zurrtum.create.content.decoration.copycat.CopycatBlock;
+import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.TerrainParticle;
 import net.minecraft.client.renderer.block.BlockModelShaper;
@@ -14,7 +15,8 @@ import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -78,20 +80,32 @@ public abstract class TerrainParticleMixin {
         }
     }
 
-    @WrapOperation(method = "<init>(Lnet/minecraft/client/multiplayer/ClientLevel;DDDDDDLnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;is(Lnet/minecraft/world/level/block/Block;)Z"))
-    private boolean isGrass(
+    @WrapOperation(method = "<init>(Lnet/minecraft/client/multiplayer/ClientLevel;DDDDDDLnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/color/block/BlockColors;getColor(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;I)I"))
+    private int copycatParticleColor(
+        BlockColors colors,
         BlockState state,
-        Block block,
-        Operation<Boolean> original,
+        BlockAndTintGetter level,
+        BlockPos pos,
+        int tintIndex,
+        Operation<Integer> original,
         @Local(argsOnly = true) ClientLevel world,
         @Share("pos") LocalRef<BlockPos> blockPos
     ) {
         if (state.getBlock() instanceof CopycatBlock) {
-            BlockPos pos = blockPos.get();
-            if (pos != null) {
-                state = CopycatBlock.getMaterial(world, pos);
+            BlockPos actualPos = blockPos.get();
+            if (actualPos == null) {
+                actualPos = pos;
             }
+
+            BlockState material = CopycatBlock.getMaterial(world, actualPos);
+
+            if (material.is(Blocks.GRASS_BLOCK)) {
+                return 0xFFFFFF;
+            }
+
+            return original.call(colors, material, level, actualPos, tintIndex);
         }
-        return original.call(state, block);
+
+        return original.call(colors, state, level, pos, tintIndex);
     }
 }
