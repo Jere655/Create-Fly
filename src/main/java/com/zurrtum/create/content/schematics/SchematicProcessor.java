@@ -3,7 +3,6 @@ package com.zurrtum.create.content.schematics;
 import com.mojang.serialization.MapCodec;
 import com.zurrtum.create.AllStructureProcessorTypes;
 import com.zurrtum.create.catnip.nbt.NBTProcessors;
-import com.zurrtum.create.foundation.blockEntity.EntityControlStructureProcessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -18,7 +17,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProc
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import org.jetbrains.annotations.Nullable;
 
-public class SchematicProcessor extends StructureProcessor implements EntityControlStructureProcessor {
+public class SchematicProcessor extends StructureProcessor {
     public static final SchematicProcessor INSTANCE = new SchematicProcessor();
     public static final MapCodec<SchematicProcessor> CODEC = MapCodec.unit(() -> INSTANCE);
 
@@ -48,9 +47,19 @@ public class SchematicProcessor extends StructureProcessor implements EntityCont
     }
 
     @Override
-    public boolean skip(Level world, StructureTemplate.StructureEntityInfo info) {
-        return info.nbt.read("id", EntityType.CODEC)
-            .map(type -> !type.onlyOpCanSetNbt() && type.create(world, EntitySpawnReason.LOAD) != null).orElse(false);
+    public @Nullable StructureTemplate.StructureEntityInfo processEntity(
+        LevelReader world,
+        BlockPos pos,
+        StructureTemplate.StructureEntityInfo rawInfo,
+        StructureTemplate.StructureEntityInfo info,
+        StructurePlaceSettings settings,
+        @Nullable StructureTemplate template
+    ) {
+        if (world instanceof Level level && info.nbt.read("id", EntityType.CODEC)
+            .map(type -> !type.onlyOpCanSetNbt() && type.create(level, EntitySpawnReason.LOAD) != null).orElse(false)) {
+            return null;
+        }
+        return info;
     }
 
     @Override

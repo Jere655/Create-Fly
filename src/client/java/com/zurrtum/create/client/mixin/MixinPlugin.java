@@ -18,8 +18,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
         mixins = List.of(
             "BlockEntityTypeMixin",
             "CreativeModeInventoryScreenMixin",
-            "EntityTypeMixin",
-            "LoadBlockModelMixin"
+            "EntityTypeMixin"
         );
     }
 

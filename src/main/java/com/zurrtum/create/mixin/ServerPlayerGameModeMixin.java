@@ -16,7 +16,6 @@ import com.zurrtum.create.content.logistics.funnel.FunnelItem;
 import com.zurrtum.create.content.redstone.analogLever.AnalogLeverBlock;
 import com.zurrtum.create.content.redstone.displayLink.ClickToLinkBlockItem;
 import com.zurrtum.create.content.redstone.link.controller.LinkedControllerItem;
-import com.zurrtum.create.foundation.block.BreakControlBlock;
 import com.zurrtum.create.foundation.blockEntity.behaviour.edgeInteraction.EdgeInteractionHandler;
 import com.zurrtum.create.infrastructure.click.ServerRightClickHandle;
 import net.minecraft.core.BlockPos;
@@ -32,8 +31,8 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -147,26 +146,20 @@ public class ServerPlayerGameModeMixin {
         return result;
     }
 
-    @WrapOperation(method = "destroyBlock(Lnet/minecraft/core/BlockPos;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;removeBlock(Lnet/minecraft/core/BlockPos;Z)Z"))
-    private boolean removeBlock(
-        ServerLevel world,
+    @WrapOperation(method = "removeBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;ZLnet/minecraft/world/item/ItemStack;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;onDestroyedByPlayer(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;ZLnet/minecraft/world/level/material/FluidState;)Z"))
+    private boolean onRemoveBlock(
+        BlockState state,
+        Level world,
         BlockPos pos,
-        boolean move,
-        Operation<Boolean> original,
-        @Local(ordinal = 0) BlockState state,
-        @Local Block block
+        Player player,
+        ItemStack toolStack,
+        boolean willHarvest,
+        FluidState fluid,
+        Operation<Boolean> original
     ) {
-        if (block instanceof BreakControlBlock controlBlock && !controlBlock.onDestroyedByPlayer(
-            state,
-            world,
-            pos,
-            player
-        )) {
-            return false;
-        }
-        boolean remove = original.call(world, pos, move);
+        boolean remove = original.call(state, world, pos, player, toolStack, willHarvest, fluid);
         if (remove) {
-            SymmetryHandler.onBlockDestroyed(player, pos, state);
+            SymmetryHandler.onBlockDestroyed(this.player, pos, state);
         }
         return remove;
     }

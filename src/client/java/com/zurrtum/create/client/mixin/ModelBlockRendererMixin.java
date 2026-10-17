@@ -6,7 +6,6 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.zurrtum.create.client.flywheel.lib.model.baked.VanillinMeshEmitter;
-import com.zurrtum.create.foundation.block.LightControlBlock;
 import com.zurrtum.create.foundation.block.SelfEmissiveLightingBlock;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.client.renderer.block.ModelBlockRenderer.Cache;
@@ -24,19 +23,6 @@ import java.util.List;
 
 @Mixin(ModelBlockRenderer.class)
 public class ModelBlockRendererMixin {
-    @WrapOperation(method = "tesselateBlock(Lnet/minecraft/world/level/BlockAndTintGetter;Ljava/util/List;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;ZI)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getLightEmission()I"))
-    private int getLuminance(
-        BlockState state,
-        Operation<Integer> original,
-        @Local(argsOnly = true) BlockAndTintGetter world,
-        @Local(argsOnly = true) BlockPos pos
-    ) {
-        if (state.getBlock() instanceof LightControlBlock block) {
-            return block.getLuminance(world, pos);
-        }
-        return original.call(state);
-    }
-
     @WrapOperation(method = "tesselateWithoutAO(Lnet/minecraft/world/level/BlockAndTintGetter;Ljava/util/List;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;ZI)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/block/ModelBlockRenderer$Cache;getLightColor(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;)I"))
     private int getLuminance(
         Cache instance,

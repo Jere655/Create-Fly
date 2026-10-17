@@ -13,8 +13,6 @@ import com.zurrtum.create.content.equipment.armor.DivingBootsItem;
 import com.zurrtum.create.content.equipment.armor.NetheriteDivingHandler;
 import com.zurrtum.create.content.kinetics.deployer.DeployerPlayer;
 import com.zurrtum.create.foundation.block.LandingEffectControlBlock;
-import com.zurrtum.create.foundation.block.ScaffoldingControlBlock;
-import com.zurrtum.create.foundation.block.SoundControlBlock;
 import com.zurrtum.create.foundation.item.SwingControlItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -30,8 +28,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -183,22 +179,4 @@ public abstract class LivingEntityMixin extends Entity {
         }
     }
 
-    @WrapOperation(method = "handleOnClimbable(Lnet/minecraft/world/phys/Vec3;)Lnet/minecraft/world/phys/Vec3;", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;is(Lnet/minecraft/world/level/block/Block;)Z"))
-    private boolean isScaffolding(BlockState state, Block block, Operation<Boolean> original) {
-        return original.call(state, block) || state.getBlock() instanceof ScaffoldingControlBlock;
-    }
-
-    @WrapOperation(method = "playBlockFallSound()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getSoundType()Lnet/minecraft/world/level/block/SoundType;"))
-    private SoundType getBlockFallSound(
-        BlockState state,
-        Operation<SoundType> original,
-        @Local(ordinal = 0) int x,
-        @Local(ordinal = 1) int y,
-        @Local(ordinal = 2) int z
-    ) {
-        if (state.getBlock() instanceof SoundControlBlock block) {
-            return block.getSoundGroup(level(), new BlockPos(x, y, z));
-        }
-        return original.call(state);
-    }
 }

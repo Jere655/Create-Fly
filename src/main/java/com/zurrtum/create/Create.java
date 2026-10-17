@@ -17,6 +17,8 @@ import com.zurrtum.create.content.equipment.tool.AllToolMaterials;
 import com.zurrtum.create.content.fluids.AllFlowCollision;
 import com.zurrtum.create.content.fluids.tank.BoilerHeaters;
 import com.zurrtum.create.content.kinetics.TorquePropagator;
+import com.zurrtum.create.content.kinetics.belt.BeltHelper;
+import com.zurrtum.create.content.contraptions.minecart.capability.CapabilityMinecartController;
 import com.zurrtum.create.content.kinetics.fan.processing.AllFanProcessingTypes;
 import com.zurrtum.create.content.kinetics.mechanicalArm.AllArmInteractionPointTypes;
 import com.zurrtum.create.content.logistics.packagePort.AllPackagePortTargetTypes;
@@ -27,16 +29,20 @@ import com.zurrtum.create.content.trains.GlobalRailwayManager;
 import com.zurrtum.create.content.trains.bogey.AllBogeySizes;
 import com.zurrtum.create.content.trains.track.AllPortalTracks;
 import com.zurrtum.create.foundation.CreateNBTProcessors;
+import com.zurrtum.create.foundation.recipe.RecipeFinder;
+import com.zurrtum.create.foundation.recipe.trie.RecipeTrieFinder;
 import com.zurrtum.create.infrastructure.config.AllConfigs;
 import com.zurrtum.create.infrastructure.worldgen.AllConfiguredFeatures;
 import com.zurrtum.create.infrastructure.worldgen.AllFeatures;
 import com.zurrtum.create.infrastructure.worldgen.AllPlacedFeatures;
 import com.zurrtum.create.infrastructure.worldgen.AllPlacementModifiers;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import org.slf4j.Logger;
 
@@ -62,6 +68,8 @@ public class Create {
         modEventBus.addListener(AllTransfer::registerCapabilities);
         AllFluidTypes.register(modEventBus);
         NeoForge.EVENT_BUS.addListener(DivingHelmetItem::onLivingBreathe);
+        NeoForge.EVENT_BUS.addListener(CapabilityMinecartController::onChunkUnload);
+        NeoForge.EVENT_BUS.addListener(Create::addReloadListeners);
         CreateRegistries.register(modEventBus);
         // Fabric initialized these static registries during loader bootstrap.
         // NeoForge opens registries during RegisterEvent, after mod construction.
@@ -75,6 +83,13 @@ public class Create {
         }
         registered = true;
         register();
+    }
+
+    private static void addReloadListeners(AddServerReloadListenersEvent event) {
+        event.addListener(Identifier.fromNamespaceAndPath(MOD_ID, "recipe_search"), RecipeFinder.LISTENER);
+        event.addListener(Identifier.fromNamespaceAndPath(MOD_ID, "recipe_trie"), RecipeTrieFinder.LISTENER);
+        event.addListener(Identifier.fromNamespaceAndPath(MOD_ID, "belt"), BeltHelper.LISTENER);
+        event.addListener(Identifier.fromNamespaceAndPath(MOD_ID, "config"), AllConfigs.LISTENER);
     }
 
     public static void register() {

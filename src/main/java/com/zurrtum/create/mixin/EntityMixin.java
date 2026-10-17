@@ -13,7 +13,6 @@ import com.zurrtum.create.content.equipment.armor.DivingBootsItem;
 import com.zurrtum.create.content.equipment.toolbox.ToolboxHandler;
 import com.zurrtum.create.content.kinetics.deployer.DeployerPlayer;
 import com.zurrtum.create.foundation.block.RunningEffectControlBlock;
-import com.zurrtum.create.foundation.block.SoundControlBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.SyncedDataHolder;
 import net.minecraft.server.level.ServerLevel;
@@ -24,7 +23,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
@@ -122,18 +120,6 @@ public abstract class EntityMixin implements SyncedDataHolder {
             return dimensions;
         }
         return original.call(entity, pose);
-    }
-
-    @WrapOperation(method = "playStepSound(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getSoundType()Lnet/minecraft/world/level/block/SoundType;"))
-    private SoundType getStepSound(
-        BlockState state,
-        Operation<SoundType> original,
-        @Local(argsOnly = true) BlockPos pos
-    ) {
-        if (state.getBlock() instanceof SoundControlBlock block) {
-            return block.getSoundGroup(level, pos);
-        }
-        return original.call(state);
     }
 
     @WrapOperation(method = "move(Lnet/minecraft/world/entity/MoverType;Lnet/minecraft/world/phys/Vec3;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getOnPosLegacy()Lnet/minecraft/core/BlockPos;"))

@@ -10,13 +10,13 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.zurrtum.create.client.model.StandardModelParameters;
-import com.zurrtum.create.client.model.UnbakedModelLoader;
 import com.zurrtum.create.foundation.utility.CreateResourceReloader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
+import net.neoforged.neoforge.client.model.UnbakedModelLoader;
 
 import java.io.FileNotFoundException;
 import java.util.Map;

@@ -13,6 +13,7 @@ import net.minecraft.world.entity.vehicle.minecart.AbstractMinecart;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.minecraft.world.level.entity.EntityAccess;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -115,6 +116,10 @@ public class CapabilityMinecartController {
                 queuedUnloads.get(world).add(cart.getUUID());
             }
         }
+    }
+
+    public static void onChunkUnload(ChunkEvent.Unload event) {
+        onChunkUnloaded(event.getChunk());
     }
 
     protected static void onCartRemoved(Level world, AbstractMinecart entity) {

@@ -15,7 +15,6 @@ import com.zurrtum.create.infrastructure.fluids.FlowableFluid;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
@@ -24,7 +23,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.mutable.MutableBoolean;
@@ -65,16 +63,15 @@ public abstract class EntityMixin {
     @Shadow
     protected abstract float nextStep();
 
-    @Inject(method = "updateFluidHeightAndDoFluidPushing(Lnet/minecraft/tags/TagKey;D)Z", at = @At("HEAD"))
-    private void clear(TagKey<Fluid> tag, double speed, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "updateFluidHeightAndDoFluidPushing(Z)V", at = @At("HEAD"))
+    private void clear(boolean doFluidPushing, CallbackInfo ci) {
         inModFluid = false;
     }
 
-    @Inject(method = "updateFluidHeightAndDoFluidPushing(Lnet/minecraft/tags/TagKey;D)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/material/FluidState;getHeight(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)F"))
+    @Inject(method = "updateFluidHeightAndDoFluidPushing(Z)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/material/FluidState;getHeight(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)F"))
     private void checkFluid(
-        TagKey<Fluid> tag,
-        double speed,
-        CallbackInfoReturnable<Boolean> cir,
+        boolean doFluidPushing,
+        CallbackInfo ci,
         @Local FluidState state
     ) {
         if (!inModFluid) {
