@@ -14,6 +14,12 @@ description = '''
 NeoForge port of the Create Fly 1.21.11 source baseline.
 '''
 
+[[mixins]]
+config = "create.mixins.json"
+
+[[mixins]]
+config = "create.client.mixins.json"
+
 [[dependencies.create]]
 modId = "neoforge"
 type = "required"

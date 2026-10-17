@@ -35,6 +35,7 @@ import net.minecraft.server.MinecraftServer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.registries.RegisterEvent;
 import org.slf4j.Logger;
 
 @Mod(Create.MOD_ID)
@@ -52,16 +53,25 @@ public class Create {
     public static RedstoneLinkNetworkHandler REDSTONE_LINK_NETWORK_HANDLER;
     public static GlobalLogisticsManager LOGISTICS;
     public static ServerSchematicLoader SCHEMATIC_RECEIVER;
+    private static boolean registered;
 
     public Create(IEventBus modEventBus, ModContainer modContainer) {
         VERSION = modContainer.getModInfo().getVersion().toString().split("\\+")[0];
         modEventBus.addListener(AllTransfer::registerCapabilities);
         AllFluidTypes.register(modEventBus);
-        // Fabric deferred this work through its registry bootstrap mixins.
-        // NeoForge owns the construction point, so registrations must happen
-        // exactly once here before common setup events are dispatched.
-        register();
+        CreateRegistries.register(modEventBus);
+        // Fabric initialized these static registries during loader bootstrap.
+        // NeoForge opens registries during RegisterEvent, after mod construction.
+        modEventBus.addListener(RegisterEvent.class, this::register);
         AllConfigs.register();
+    }
+
+    private void register(RegisterEvent event) {
+        if (registered) {
+            return;
+        }
+        registered = true;
+        register();
     }
 
     public static void register() {
@@ -71,7 +81,6 @@ public class Create {
         LOGISTICS = new GlobalLogisticsManager();
         SCHEMATIC_RECEIVER = new ServerSchematicLoader();
         CreateRegistryKeys.register();
-        CreateRegistries.register();
         AllPackageStyles.register();
         AllToolMaterials.register();
         AllArmorMaterials.register();

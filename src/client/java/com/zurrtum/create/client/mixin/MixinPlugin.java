@@ -15,7 +15,12 @@ public class MixinPlugin implements IMixinConfigPlugin {
         // These are Create's vanilla-client mixins. Fabric-loader integrations
         // are not part of the NeoForge build; fluid rendering is handled by
         // NeoForge's IClientFluidTypeExtensions instead.
-        mixins = List.of("CreativeModeInventoryScreenMixin", "LoadBlockModelMixin");
+        mixins = List.of(
+            "BlockEntityTypeMixin",
+            "CreativeModeInventoryScreenMixin",
+            "EntityTypeMixin",
+            "LoadBlockModelMixin"
+        );
     }
 
     @Override
