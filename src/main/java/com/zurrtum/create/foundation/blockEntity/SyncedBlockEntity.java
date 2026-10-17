@@ -6,6 +6,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.ProblemReporter;
@@ -38,11 +39,19 @@ public abstract class SyncedBlockEntity extends BlockEntity {
         return ClientboundBlockEntityDataPacket.create(this);
     }
 
+    @Override
     public void handleUpdateTag(ValueInput view) {
         readClient(view);
     }
 
-    public void onDataPacket(ValueInput view) {
+    /**
+     * NeoForge's client packet path delegates here from
+     * {@code ClientPacketListener.handleBlockEntityData}.  Handling Create's
+     * compact update payload at this extension point leaves the vanilla packet
+     * setup and all non-Create block entities untouched.
+     */
+    @Override
+    public void onDataPacket(Connection connection, ValueInput view) {
         readClient(view);
     }
 
