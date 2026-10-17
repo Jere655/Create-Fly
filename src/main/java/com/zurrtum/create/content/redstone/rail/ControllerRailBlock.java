@@ -6,6 +6,7 @@ import com.zurrtum.create.catnip.data.Iterate;
 import com.zurrtum.create.catnip.math.VecHelper;
 import com.zurrtum.create.content.equipment.wrench.IWrenchable;
 import com.zurrtum.create.foundation.block.MinecartPassBlock;
+import com.zurrtum.create.mixin.AbstractMinecartAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -145,7 +146,7 @@ public class ControllerRailBlock extends BaseRailBlock implements IWrenchable, M
             return;
         }
         Vec3 accelerationVec = Vec3.atLowerCornerOf(getAccelerationVector(state));
-        double targetSpeed = cart.getMaxSpeed((ServerLevel) world) * state.getValue(POWER) / 15f;
+        double targetSpeed = ((AbstractMinecartAccessor) cart).create$getMaxSpeed((ServerLevel) world) * state.getValue(POWER) / 15f;
 
         if (cart instanceof MinecartFurnace fme) {
             fme.push = new Vec3(accelerationVec.x, 0, accelerationVec.z);

@@ -76,7 +76,7 @@ public class DropperMovementBehaviour extends MovementBehaviour {
 
     private static boolean tryTopOff(ItemStack stack, Container from) {
         int count = stack.getCount();
-        int extract = from.extract(stack, stack.getMaxStackSize() - count);
+        int extract = com.zurrtum.create.infrastructure.items.InventoryUtil.of(from).extract(stack, stack.getMaxStackSize() - count);
         if (extract == 0) {
             return false;
         }

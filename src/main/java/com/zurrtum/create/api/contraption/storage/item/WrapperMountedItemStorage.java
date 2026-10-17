@@ -46,12 +46,12 @@ public abstract class WrapperMountedItemStorage<T extends Container> extends Mou
 
     @Override
     public int insert(ItemStack stack) {
-        return wrapped.insert(stack);
+        return com.zurrtum.create.infrastructure.items.InventoryUtil.of(wrapped).insert(stack);
     }
 
     @Override
     public int extract(ItemStack stack) {
-        return wrapped.extract(stack);
+        return com.zurrtum.create.infrastructure.items.InventoryUtil.of(wrapped).extract(stack);
     }
 
     public static ItemStackHandler copyToItemStackHandler(Container handler) {

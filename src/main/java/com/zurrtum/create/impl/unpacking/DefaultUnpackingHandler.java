@@ -36,9 +36,9 @@ public class DefaultUnpackingHandler implements UnpackingHandler {
         }
 
         if (!simulate) {
-            targetInv.insert(items);
+            com.zurrtum.create.infrastructure.items.InventoryUtil.of(targetInv).insert(items);
             return true;
         }
-        return targetInv.countSpace(items);
+        return com.zurrtum.create.infrastructure.items.InventoryUtil.of(targetInv).countSpace(items);
     }
 }

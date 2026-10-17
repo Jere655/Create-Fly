@@ -82,9 +82,9 @@ public class FunnelMovementBehaviour extends MovementBehaviour {
         Container inventory = context.contraption.getStorage().getAllItems();
         ItemStack extract;
         if (upTo) {
-            extract = inventory.extract(s -> filter.test(world, s), filterAmount);
+            extract = com.zurrtum.create.infrastructure.items.InventoryUtil.of(inventory).extract(s -> filter.test(world, s), filterAmount);
         } else {
-            extract = inventory.preciseExtract(s -> filter.test(world, s), filterAmount);
+            extract = com.zurrtum.create.infrastructure.items.InventoryUtil.of(inventory).preciseExtract(s -> filter.test(world, s), filterAmount);
         }
 
         if (extract.isEmpty()) {
@@ -121,7 +121,7 @@ public class FunnelMovementBehaviour extends MovementBehaviour {
             }
             Container inventory = context.contraption.getStorage().getAllItems();
             int count = toInsert.getCount();
-            int insert = inventory.insertExist(toInsert);
+            int insert = com.zurrtum.create.infrastructure.items.InventoryUtil.of(inventory).insertExist(toInsert);
             if (insert == count) {
                 entity.discard();
             } else if (insert > 0) {

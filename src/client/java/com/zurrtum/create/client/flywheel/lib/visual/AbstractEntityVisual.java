@@ -4,6 +4,7 @@ import com.zurrtum.create.client.flywheel.api.visual.*;
 import com.zurrtum.create.client.flywheel.api.visualization.VisualizationContext;
 import com.zurrtum.create.client.flywheel.api.visualization.VisualizationManager;
 import com.zurrtum.create.client.flywheel.lib.instance.FlatLit;
+import com.zurrtum.create.client.mixin.EntityRendererAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.core.BlockPos;
@@ -89,8 +90,8 @@ public abstract class AbstractEntityVisual<T extends Entity> extends AbstractVis
     }
 
     public boolean isVisible(FrustumIntersection frustum) {
-        return !Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(entity)
-            .affectedByCulling(entity) || visibilityTester.check(frustum);
+        return !((EntityRendererAccessor) Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(entity))
+            .create$affectedByCulling(entity) || visibilityTester.check(frustum);
     }
 
     protected int computePackedLight(float partialTick) {

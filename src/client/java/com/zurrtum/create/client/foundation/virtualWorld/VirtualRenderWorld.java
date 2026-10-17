@@ -116,6 +116,26 @@ public class VirtualRenderWorld extends Level implements VisualizationLevel {
         return level.getWorldBorder();
     }
 
+    @Override
+    public void setDayTimeFraction(float dayTimeFraction) {
+        level.setDayTimeFraction(dayTimeFraction);
+    }
+
+    @Override
+    public float getDayTimeFraction() {
+        return level.getDayTimeFraction();
+    }
+
+    @Override
+    public float getDayTimePerTick() {
+        return level.getDayTimePerTick();
+    }
+
+    @Override
+    public void setDayTimePerTick(float dayTimePerTick) {
+        level.setDayTimePerTick(dayTimePerTick);
+    }
+
     /**
      * We need to ensure that height and minBuildHeight are multiples of 16.
      * Adapted from: https://math.stackexchange.com/questions/291468
@@ -482,7 +502,9 @@ public class VirtualRenderWorld extends Level implements VisualizationLevel {
 
     @Override
     public Collection<EnderDragonPart> dragonParts() {
-        return level.dragonParts();
+        @SuppressWarnings("unchecked")
+        Collection<EnderDragonPart> dragonParts = (Collection<EnderDragonPart>) (Collection<?>) level.dragonParts();
+        return dragonParts;
     }
 
     @Override

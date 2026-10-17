@@ -15,6 +15,7 @@ import com.zurrtum.create.client.content.kinetics.base.KineticBlockEntityVisual;
 import com.zurrtum.create.client.flywheel.api.visualization.VisualizationContext;
 import com.zurrtum.create.client.flywheel.api.visualization.VisualizationManager;
 import com.zurrtum.create.client.foundation.virtualWorld.VirtualRenderWorld;
+import com.zurrtum.create.client.mixin.BlockBehaviourAccessor;
 import com.zurrtum.create.content.contraptions.behaviour.MovementContext;
 import com.zurrtum.create.content.kinetics.base.DirectionalAxisKineticBlock;
 import com.zurrtum.create.content.kinetics.saw.SawBlock;
@@ -87,7 +88,7 @@ public class SawMovementRenderBehaviour implements MovementRenderBehaviour {
             if (axis.isHorizontal()) {
                 state.shaft = CachedBuffers.partialFacing(
                     AllPartialModels.SHAFT_HALF,
-                    blockState.getBlock().rotate(blockState, Rotation.CLOCKWISE_180)
+                    ((BlockBehaviourAccessor) blockState.getBlock()).create$rotate(blockState, Rotation.CLOCKWISE_180)
                 );
             } else {
                 boolean alongFirst = blockState.getValue(DirectionalAxisKineticBlock.AXIS_ALONG_FIRST_COORDINATE);

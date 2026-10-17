@@ -520,11 +520,11 @@ public class SchematicannonBlockEntity extends SmartBlockEntity implements MenuP
                     continue;
                 }
                 if (simulate) {
-                    if (!cap.count(stack -> required.matches(stack) && stack.isDamageableItem(), 1).isEmpty()) {
+                    if (!com.zurrtum.create.infrastructure.items.InventoryUtil.of(cap).count(stack -> required.matches(stack) && stack.isDamageableItem(), 1).isEmpty()) {
                         return true;
                     }
                 } else {
-                    if (cap.update(
+                    if (com.zurrtum.create.infrastructure.items.InventoryUtil.of(cap).update(
                         stack -> required.matches(stack) && stack.isDamageableItem(), stack -> {
                             int damage = stack.getDamageValue() + 1;
                             int maxDamage = stack.getMaxDamage();
@@ -549,7 +549,7 @@ public class SchematicannonBlockEntity extends SmartBlockEntity implements MenuP
             if (cap == null) {
                 continue;
             }
-            remaining -= cap.countAll(required::matches, remaining);
+            remaining -= com.zurrtum.create.infrastructure.items.InventoryUtil.of(cap).countAll(required::matches, remaining);
             if (remaining == 0) {
                 break;
             }
@@ -562,7 +562,7 @@ public class SchematicannonBlockEntity extends SmartBlockEntity implements MenuP
                 if (cap == null) {
                     continue;
                 }
-                remaining -= cap.extractAll(required::matches, remaining);
+                remaining -= com.zurrtum.create.infrastructure.items.InventoryUtil.of(cap).extractAll(required::matches, remaining);
                 if (remaining == 0) {
                     break;
                 }
@@ -700,7 +700,7 @@ public class SchematicannonBlockEntity extends SmartBlockEntity implements MenuP
                 if (cap == null) {
                     continue;
                 }
-                if (cap.extractAll(stack -> inventory.canPlaceItem(4, stack), 1) == 0) {
+                if (com.zurrtum.create.infrastructure.items.InventoryUtil.of(cap).extractAll(stack -> inventory.canPlaceItem(4, stack), 1) == 0) {
                     continue;
                 }
                 externalGunpowderFound = true;

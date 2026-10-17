@@ -152,7 +152,7 @@ public class ItemHatchBlock extends HorizontalDirectionalBlock implements IBE<It
             }
 
             int count = item.getCount();
-            int insert = targetInv.insertExist(item, count);
+            int insert = com.zurrtum.create.infrastructure.items.InventoryUtil.of(targetInv).insertExist(item, count);
             if (insert == 0) {
                 continue;
             }

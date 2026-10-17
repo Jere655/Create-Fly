@@ -137,7 +137,7 @@ public class MillstoneBlock extends KineticBlock implements IBE<MillstoneBlockEn
         }
 
         ItemStack stack = itemEntity.getItem();
-        int insert = capability.insert(stack);
+        int insert = com.zurrtum.create.infrastructure.items.InventoryUtil.of(capability).insert(stack);
         if (insert == stack.getCount()) {
             itemEntity.discard();
         } else if (insert != 0) {

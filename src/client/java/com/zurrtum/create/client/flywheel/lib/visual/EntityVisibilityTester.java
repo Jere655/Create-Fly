@@ -1,6 +1,7 @@
 package com.zurrtum.create.client.flywheel.lib.visual;
 
 import com.zurrtum.create.client.flywheel.lib.math.MoreMath;
+import com.zurrtum.create.client.mixin.EntityRendererAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Vec3i;
 import net.minecraft.util.Mth;
@@ -42,8 +43,8 @@ public class EntityVisibilityTester {
      * @return {@code true} if the Entity is visible, {@code false} otherwise.
      */
     public boolean check(FrustumIntersection frustum) {
-        AABB aabb = Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(entity)
-            .getBoundingBoxForCulling(entity);
+        AABB aabb = ((EntityRendererAccessor) Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(entity))
+            .create$getBoundingBoxForCulling(entity);
 
         // If we've never seen the entity before assume its visible.
         // Fixes entities freezing when they first spawn.

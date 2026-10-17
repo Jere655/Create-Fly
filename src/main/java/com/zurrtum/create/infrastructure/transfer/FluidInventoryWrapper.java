@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -326,7 +327,6 @@ public class FluidInventoryWrapper implements FluidInventory {
         return insertExist(stack, Math.max(0, stack.getAmount()));
     }
 
-    @Override
     public int insertExist(FluidStack stack, int maxAmount) {
         if (stack.isEmpty() || maxAmount <= 0) {
             return 0;

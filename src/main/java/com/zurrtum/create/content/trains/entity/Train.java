@@ -273,7 +273,7 @@ public class Train {
             for (Carriage carriage : carriages) {
                 Container inv = carriage.storage.getAllItems();
                 if (inv != null) {
-                    ItemStack find = inv.count(stack -> filter.test(level, stack), 1);
+                    ItemStack find = com.zurrtum.create.infrastructure.items.InventoryUtil.of(inv).count(stack -> filter.test(level, stack), 1);
                     if (!find.isEmpty()) {
                         shouldActivate = true;
                         break;
@@ -1227,7 +1227,7 @@ public class Train {
             }
 
             MutableInt burnTime = new MutableInt();
-            ItemStack extract = fuelItems.extract(
+            ItemStack extract = com.zurrtum.create.infrastructure.items.InventoryUtil.of(fuelItems).extract(
                 stack -> {
                     int ticks = fuelRegistry.burnDuration(stack);
                     if (ticks > 0) {
@@ -1243,7 +1243,7 @@ public class Train {
             fuelTicks += burnTime.getValue();
             ItemStack remainder = extract.getItem().getCraftingRemainder();
             if (!remainder.isEmpty()) {
-                fuelItems.insertExist(remainder);
+                com.zurrtum.create.infrastructure.items.InventoryUtil.of(fuelItems).insertExist(remainder);
             }
             return;
         }

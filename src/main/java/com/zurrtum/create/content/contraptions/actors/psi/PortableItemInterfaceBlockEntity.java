@@ -109,7 +109,7 @@ public class PortableItemInterfaceBlockEntity extends PortableStorageInterfaceBl
 
         @Override
         public int insert(ItemStack stack, int maxAmount, Direction side) {
-            int insert = wrapped.insert(stack, maxAmount, side);
+            int insert = com.zurrtum.create.infrastructure.items.InventoryUtil.of(wrapped).insert(stack, maxAmount, side);
             if (insert != 0) {
                 setChanged();
             }
@@ -118,7 +118,7 @@ public class PortableItemInterfaceBlockEntity extends PortableStorageInterfaceBl
 
         @Override
         public int extract(ItemStack stack, int maxAmount, Direction side) {
-            int extract = wrapped.extract(stack, maxAmount, side);
+            int extract = com.zurrtum.create.infrastructure.items.InventoryUtil.of(wrapped).extract(stack, maxAmount, side);
             if (extract != 0) {
                 setChanged();
             }
@@ -136,7 +136,7 @@ public class PortableItemInterfaceBlockEntity extends PortableStorageInterfaceBl
 
         @Override
         public @NotNull java.util.Iterator<ItemStack> iterator(Direction side) {
-            return wrapped.iterator(side);
+            return com.zurrtum.create.infrastructure.items.InventoryUtil.of(wrapped).iterator(side);
         }
     }
 

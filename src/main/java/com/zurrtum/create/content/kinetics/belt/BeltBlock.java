@@ -218,7 +218,7 @@ public class BeltBlock extends HorizontalKineticBlock implements IBE<BeltBlockEn
                     if (inventory == null) {
                         return;
                     }
-                    int insert = inventory.insert(asItem);
+                    int insert = com.zurrtum.create.infrastructure.items.InventoryUtil.of(inventory).insert(asItem);
                     if (asItem.getCount() == insert) {
                         entityIn.discard();
                     } else if (entityIn instanceof ItemEntity itemEntity && insert != 0) {
@@ -300,7 +300,7 @@ public class BeltBlock extends HorizontalKineticBlock implements IBE<BeltBlockEn
             if (handler == null) {
                 return InteractionResult.TRY_WITH_EMPTY_HAND;
             }
-            int insert = handler.insert(toInsert);
+            int insert = com.zurrtum.create.infrastructure.items.InventoryUtil.of(handler).insert(toInsert);
             if (insert != 0) {
                 stack.shrink(insert);
                 return InteractionResult.SUCCESS;

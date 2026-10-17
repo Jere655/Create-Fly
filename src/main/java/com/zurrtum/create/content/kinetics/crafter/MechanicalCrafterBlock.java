@@ -228,7 +228,7 @@ public class MechanicalCrafterBlock extends HorizontalKineticBlock implements IB
                     return InteractionResult.TRY_WITH_EMPTY_HAND;
                 }
                 int count = stack.getCount();
-                int insert = capability.insert(stack);
+                int insert = com.zurrtum.create.infrastructure.items.InventoryUtil.of(capability).insert(stack);
                 if (!player.isCreative()) {
                     if (insert == count) {
                         player.setItemInHand(hand, ItemStack.EMPTY);

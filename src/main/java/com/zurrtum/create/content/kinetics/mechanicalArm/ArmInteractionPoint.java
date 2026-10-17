@@ -156,9 +156,9 @@ public class ArmInteractionPoint {
         }
         int insert;
         if (simulate) {
-            insert = handler.countSpace(stack, Direction.UP);
+            insert = com.zurrtum.create.infrastructure.items.InventoryUtil.of(handler).countSpace(stack, Direction.UP);
         } else {
-            insert = handler.insert(stack, Direction.UP);
+            insert = com.zurrtum.create.infrastructure.items.InventoryUtil.of(handler).insert(stack, Direction.UP);
         }
         if (insert == 0) {
             return stack;
@@ -176,9 +176,9 @@ public class ArmInteractionPoint {
             return ItemStack.EMPTY;
         }
         if (simulate) {
-            return handler.count(stack -> true, amount, Direction.UP);
+            return com.zurrtum.create.infrastructure.items.InventoryUtil.of(handler).count(stack -> true, amount, Direction.UP);
         }
-        return handler.extract(stack -> true, amount, Direction.UP);
+        return com.zurrtum.create.infrastructure.items.InventoryUtil.of(handler).extract(stack -> true, amount, Direction.UP);
     }
 
     public ItemStack extract(ArmBlockEntity armBlockEntity, int slot, boolean simulate) {

@@ -197,7 +197,7 @@ public class GlobalStation extends SingleBlockEntityEdgePoint {
                         continue;
                     }
 
-                    int insert = carriageInventory.insert(stack);
+                    int insert = com.zurrtum.create.infrastructure.items.InventoryUtil.of(carriageInventory).insert(stack);
                     if (insert == 0) {
                         continue;
                     }
@@ -238,7 +238,7 @@ public class GlobalStation extends SingleBlockEntityEdgePoint {
                         box = ppbe;
                         box.inventory.sendMode();
                     }
-                    int insert = postboxInventory.insert(stack);
+                    int insert = com.zurrtum.create.infrastructure.items.InventoryUtil.of(postboxInventory).insert(stack);
                     if (box != null) {
                         box.inventory.receiveMode();
                     }
@@ -246,9 +246,9 @@ public class GlobalStation extends SingleBlockEntityEdgePoint {
                         continue;
                     }
 
-                    int extract = carriageInventory.extract(stack, insert);
+                    int extract = com.zurrtum.create.infrastructure.items.InventoryUtil.of(carriageInventory).extract(stack, insert);
                     if (extract != insert) {
-                        postboxInventory.extract(stack, insert - extract);
+                        com.zurrtum.create.infrastructure.items.InventoryUtil.of(postboxInventory).extract(stack, insert - extract);
                     }
                     if (box == null) {
                         port.primed = true;

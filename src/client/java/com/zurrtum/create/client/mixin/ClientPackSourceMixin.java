@@ -12,7 +12,7 @@ import net.minecraft.server.packs.VanillaPackResourcesBuilder;
 import net.minecraft.server.packs.metadata.pack.PackMetadataSection;
 import net.minecraft.server.packs.repository.KnownPack;
 import net.minecraft.server.packs.repository.Pack;
-import net.minecraft.server.packs.repository.PackSelectionConfig;
+import net.minecraft.server.packs.PackSelectionConfig;
 import net.minecraft.server.packs.repository.PackSource;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforgespi.language.IModFileInfo;
@@ -43,7 +43,7 @@ public abstract class ClientPackSourceMixin {
             .orElseThrow();
         IModFile modFile = modFileInfo.getFile();
         String version = modInfo.getVersion().toString();
-        Path assetRoot = modFile.findResource(PackType.CLIENT_RESOURCES.getDirectory());
+        Path assetRoot = modFile.getFilePath().resolve(PackType.CLIENT_RESOURCES.getDirectory());
 
         consumer.accept(
             MOD_ID, id -> {
@@ -54,7 +54,7 @@ public abstract class ClientPackSourceMixin {
             }
         );
         if (ModList.get().isLoaded("holdmyitems")) {
-            Path assets = modFile.findResource("holdmyitems");
+            Path assets = modFile.getFilePath().resolve("holdmyitems");
             if (Files.exists(assets)) {
                 consumer.accept(
                     MOD_ID + "_holdmyitems", id -> {
@@ -66,7 +66,7 @@ public abstract class ClientPackSourceMixin {
                 );
             }
         }
-        Path legacyCopperAssets = modFile.findResource("legacy_copper");
+        Path legacyCopperAssets = modFile.getFilePath().resolve("legacy_copper");
         if (Files.exists(legacyCopperAssets)) {
             consumer.accept(
                 MOD_ID + "_legacy_copper", id -> {

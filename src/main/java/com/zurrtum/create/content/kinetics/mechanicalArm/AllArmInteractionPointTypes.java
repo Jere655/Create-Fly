@@ -570,9 +570,9 @@ public class AllArmInteractionPointTypes {
                 return ItemStack.EMPTY;
             }
             if (simulate) {
-                return handler.count(stack -> true, amount, Direction.DOWN);
+                return com.zurrtum.create.infrastructure.items.InventoryUtil.of(handler).count(stack -> true, amount, Direction.DOWN);
             }
-            return handler.extract(stack -> true, amount, Direction.DOWN);
+            return com.zurrtum.create.infrastructure.items.InventoryUtil.of(handler).extract(stack -> true, amount, Direction.DOWN);
         }
 
         @Override

@@ -7,6 +7,7 @@ import com.zurrtum.create.content.contraptions.behaviour.MovementContext;
 import com.zurrtum.create.foundation.item.ItemHelper;
 import com.zurrtum.create.foundation.utility.BlockHelper;
 import com.zurrtum.create.infrastructure.config.AllConfigs;
+import com.zurrtum.create.mixin.CropBlockAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.ItemStack;
@@ -170,7 +171,7 @@ public class HarvesterMovementBehaviour extends MovementBehaviour {
             if (!newState.is(block)) {
                 return newState;
             }
-            IntegerProperty ageProperty = crop.getAgeProperty();
+            IntegerProperty ageProperty = ((CropBlockAccessor) crop).create$getAgeProperty();
             return state.setValue(ageProperty, 0);
         }
         if (block == Blocks.SWEET_BERRY_BUSH) {

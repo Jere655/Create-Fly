@@ -11,7 +11,6 @@ import com.zurrtum.create.AllDataComponents;
 import com.zurrtum.create.AllRecipeSerializers;
 import com.zurrtum.create.AllRecipeTypes;
 import com.zurrtum.create.content.processing.recipe.ProcessingOutput;
-import com.zurrtum.create.foundation.recipe.ComponentsIngredient;
 import com.zurrtum.create.foundation.recipe.CreateRecipe;
 import com.zurrtum.create.infrastructure.component.SequencedAssemblyJunk;
 import net.minecraft.ChatFormatting;
@@ -28,6 +27,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemLore;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.util.TriConsumer;
 
@@ -116,10 +116,10 @@ public record SequencedAssemblyRecipe(Ingredient ingredient, ItemStack transitio
                     }
 
                     ItemStack transitional = transitionalItem.copy();
-                    Ingredient transitionalIngredient = Ingredient.of(transitionalItem.getItem());
-                    Supplier<JsonElement> transitionalJsonIngredient = () -> ComponentsIngredient.CODEC.encodeStart(
+                    Ingredient transitionalIngredient = DataComponentIngredient.of(false, transitional);
+                    Supplier<JsonElement> transitionalJsonIngredient = () -> Ingredient.CODEC.encodeStart(
                         ops,
-                        new ComponentsIngredient(transitionalIngredient, transitional.getComponentsPatch())
+                        transitionalIngredient
                     ).getOrThrow();
 
                     List<BiFunction<JsonElement, JsonElement, JsonObject>> sequenceJsonFactory = new ArrayList<>(size);

@@ -177,7 +177,7 @@ public class RollerMovementBehaviour extends BlockBreakingMovementBehaviour {
         if (!getStateToPaveWith(context).isAir()) {
             FilterItemStack filter = context.getFilterFromBE();
             Container inventory = context.contraption.getStorage().getAllItems();
-            ItemStack count = inventory.count(stack -> filter.test(context.world, stack), 1);
+            ItemStack count = com.zurrtum.create.infrastructure.items.InventoryUtil.of(inventory).count(stack -> filter.test(context.world, stack), 1);
             if (!count.isEmpty()) {
                 startingY = 0;
             }
@@ -500,7 +500,7 @@ public class RollerMovementBehaviour extends BlockBreakingMovementBehaviour {
 
         FilterItemStack filter = context.getFilterFromBE();
         Container inventory = context.contraption.getStorage().getAllItems();
-        ItemStack held = inventory.extract(stack -> filter.test(context.world, stack), 1);
+        ItemStack held = com.zurrtum.create.infrastructure.items.InventoryUtil.of(inventory).extract(stack -> filter.test(context.world, stack), 1);
         if (held.isEmpty()) {
             return PaveResult.FAIL;
         }

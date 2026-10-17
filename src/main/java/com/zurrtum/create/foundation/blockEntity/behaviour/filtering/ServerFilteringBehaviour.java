@@ -271,7 +271,7 @@ public class ServerFilteringBehaviour extends BlockEntityBehaviour<SmartBlockEnt
             if (refund.getItem() == filterType) {
                 setFilter(side, copied);
                 return true;
-            } else if (inventory.extract(filterType.getDefaultInstance()) == 1 || !inventory.extract(
+            } else if (com.zurrtum.create.infrastructure.items.InventoryUtil.of(inventory).extract(filterType.getDefaultInstance()) == 1 || !com.zurrtum.create.infrastructure.items.InventoryUtil.of(inventory).extract(
                 stack -> stack.getItem() == filterType,
                 1
             ).isEmpty()) {
@@ -316,7 +316,7 @@ public class ServerFilteringBehaviour extends BlockEntityBehaviour<SmartBlockEnt
         ItemStack filter = getFilter(side);
         if (filter.getItem() instanceof FilterItem) {
             Inventory inventory = player.getInventory();
-            if (!player.isCreative() || inventory.count(filter, 1) == 0) {
+            if (!player.isCreative() || com.zurrtum.create.infrastructure.items.InventoryUtil.of(inventory).count(filter, 1) == 0) {
                 inventory.placeItemBackInInventory(filter.copy());
             }
         }

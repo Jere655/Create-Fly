@@ -39,9 +39,9 @@ public class RepackagerBlockEntity extends PackagerBlockEntity {
         boolean anySpace;
         if (simulate) {
             int count = box.getCount();
-            anySpace = targetInv.countSpace(box, count) == count;
+            anySpace = com.zurrtum.create.infrastructure.items.InventoryUtil.of(targetInv).countSpace(box, count) == count;
         } else {
-            anySpace = targetInv.preciseInsert(box);
+            anySpace = com.zurrtum.create.infrastructure.items.InventoryUtil.of(targetInv).preciseInsert(box);
         }
 
         if (!targetIsCreativeCrate && !anySpace) {
@@ -111,7 +111,7 @@ public class RepackagerBlockEntity extends PackagerBlockEntity {
             }
 
             if (!repackageHelper.isFragmented(stack)) {
-                targetInv.extract(stack, 1);
+                com.zurrtum.create.infrastructure.items.InventoryUtil.of(targetInv).extract(stack, 1);
                 heldBox = stack.copy();
                 animationInward = false;
                 animationTicks = CYCLE;
@@ -139,7 +139,7 @@ public class RepackagerBlockEntity extends PackagerBlockEntity {
             computer.queueRepackage(boxesToExport);
         }
 
-        targetInv.extract(repackageHelper.collectedPackages.get(completedOrderId));
+        com.zurrtum.create.infrastructure.items.InventoryUtil.of(targetInv).extract(repackageHelper.collectedPackages.get(completedOrderId));
         queuedExitingPackages.addAll(boxesToExport);
         notifyUpdate();
     }

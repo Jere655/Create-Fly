@@ -30,7 +30,7 @@ public class MountedItemStorageWrapper extends CombinedInvWrapper {
         int currentSlot = 0;
         for (int storageIdx = 0; storageIdx < itemHandler.length; storageIdx++) {
             slotOffsets[storageIdx] = currentSlot;
-            int slotsInStorage = itemHandler[storageIdx].getContainerSize();
+            int slotsInStorage = itemHandler[storageIdx].create$size();
 
             for (int i = 0; i < slotsInStorage; i++) {
                 slotToStorage[currentSlot + i] = storageIdx;

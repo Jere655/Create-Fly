@@ -7,7 +7,6 @@ import net.minecraft.world.entity.ContainerUser;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
@@ -118,95 +117,4 @@ public record SidedInventoryWrapper(Container inventory, int[] slots) implements
         return inventory.hasAnyMatching(predicate);
     }
 
-    @Override
-    public int insert(ItemStack stack) {
-        return inventory.insert(stack);
-    }
-
-    @Override
-    public int insert(ItemStack stack, Direction side) {
-        return inventory.insert(stack);
-    }
-
-    @Override
-    public boolean preciseInsert(ItemStack stack) {
-        return inventory.preciseInsert(stack);
-    }
-
-    @Override
-    public boolean preciseInsert(ItemStack stack, Direction side) {
-        return inventory.preciseInsert(stack);
-    }
-
-    @Override
-    public int count(ItemStack stack) {
-        return inventory.count(stack);
-    }
-
-    @Override
-    public int count(ItemStack stack, Direction side) {
-        return inventory.count(stack);
-    }
-
-    @Override
-    public int count(ItemStack stack, int maxAmount) {
-        return inventory.count(stack, maxAmount);
-    }
-
-    @Override
-    public int count(ItemStack stack, int maxAmount, Direction side) {
-        return inventory.count(stack, maxAmount);
-    }
-
-    @Override
-    public int countSpace(ItemStack stack) {
-        return inventory.countSpace(stack);
-    }
-
-    @Override
-    public int countSpace(ItemStack stack, Direction side) {
-        return inventory.countSpace(stack);
-    }
-
-    @Override
-    public int countSpace(ItemStack stack, int maxAmount) {
-        return inventory.countSpace(stack, maxAmount);
-    }
-
-    @Override
-    public int countSpace(ItemStack stack, int maxAmount, Direction side) {
-        return inventory.countSpace(stack, maxAmount);
-    }
-
-    @Override
-    public int extract(ItemStack stack) {
-        return inventory.extract(stack);
-    }
-
-    @Override
-    public int extract(ItemStack stack, Direction side) {
-        return inventory.extract(stack);
-    }
-
-    @Override
-    public boolean preciseExtract(ItemStack stack) {
-        return inventory.preciseExtract(stack);
-    }
-
-    @Override
-    public boolean preciseExtract(ItemStack stack, Direction side) {
-        return inventory.preciseExtract(stack);
-    }
-
-    @Override
-    @NotNull
-    public java.util.Iterator<ItemStack> iterator() {
-        return inventory.iterator();
-    }
-
-    @Override
-    @NotNull
-    public java.util.Iterator<ItemStack> iterator(Direction side) {
-        return inventory.iterator();
-    }
 }

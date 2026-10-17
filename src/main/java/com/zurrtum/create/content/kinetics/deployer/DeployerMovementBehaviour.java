@@ -165,14 +165,14 @@ public class DeployerMovementBehaviour extends MovementBehaviour {
             Container itemHandler = context.contraption.getStorage().getAllItems();
             for (ItemRequirement.StackRequirement required : requiredItems) {
                 int count = required.stack.getCount();
-                int extract = itemHandler.countAll(required::matches, count);
+                int extract = com.zurrtum.create.infrastructure.items.InventoryUtil.of(itemHandler).countAll(required::matches, count);
                 if (extract != count) {
                     return;
                 }
             }
             for (ItemRequirement.StackRequirement required : requiredItems) {
                 contextStack = required.stack;
-                itemHandler.extractAll(required::matches, contextStack.getCount());
+                com.zurrtum.create.infrastructure.items.InventoryUtil.of(itemHandler).extractAll(required::matches, contextStack.getCount());
             }
         }
 

@@ -360,6 +360,24 @@ public class SchematicChunkSource extends ChunkSource {
             public TickRateManager tickRateManager() {
                 return null;
             }
+
+            @Override
+            public void setDayTimeFraction(float dayTimeFraction) {
+            }
+
+            @Override
+            public float getDayTimeFraction() {
+                return 0;
+            }
+
+            @Override
+            public float getDayTimePerTick() {
+                return 0;
+            }
+
+            @Override
+            public void setDayTimePerTick(float dayTimePerTick) {
+            }
         }
 
         public EmptierChunk(Level level) {

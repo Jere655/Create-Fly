@@ -14,6 +14,7 @@ import com.zurrtum.create.content.redstone.rail.ControllerRailBlock;
 import com.zurrtum.create.foundation.advancement.CreateTrigger;
 import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
 import com.zurrtum.create.foundation.blockEntity.behaviour.scrollValue.ServerScrollOptionBehaviour;
+import com.zurrtum.create.mixin.AbstractMinecartAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -95,7 +96,7 @@ public class CartAssemblerBlockEntity extends SmartBlockEntity {
                     }
                 }
 
-                double speed = cart.getMaxSpeed((ServerLevel) level);
+                double speed = ((AbstractMinecartAccessor) cart).create$getMaxSpeed((ServerLevel) level);
                 cart.setDeltaMovement(facing.getStepX() * speed, facing.getStepY() * speed, facing.getStepZ() * speed);
             }
         }
@@ -103,7 +104,7 @@ public class CartAssemblerBlockEntity extends SmartBlockEntity {
             Vec3i accelerationVector = ControllerRailBlock.getAccelerationVector(AllBlocks.CONTROLLER_RAIL.defaultBlockState()
                 .setValue(ControllerRailBlock.SHAPE, state.getValue(CartAssemblerBlock.RAIL_SHAPE))
                 .setValue(ControllerRailBlock.BACKWARDS, state.getValue(CartAssemblerBlock.BACKWARDS)));
-            double speed = cart.getMaxSpeed((ServerLevel) level);
+            double speed = ((AbstractMinecartAccessor) cart).create$getMaxSpeed((ServerLevel) level);
             cart.setDeltaMovement(Vec3.atLowerCornerOf(accelerationVector).scale(speed));
         }
         if (action == CartAssemblerBlock.CartAssemblerAction.DISASSEMBLE_BRAKE) {

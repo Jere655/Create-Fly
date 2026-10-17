@@ -224,7 +224,7 @@ public class RepackagerScenes {
         scene.world().modifyBlockEntity(
             util.grid().at(3, 2, 5),
             MechanicalCrafterBlockEntity.class,
-            be -> be.getInvCapability().insert(stack)
+            be -> com.zurrtum.create.infrastructure.items.InventoryUtil.of(be.getInvCapability()).insert(stack)
         );
     }
 

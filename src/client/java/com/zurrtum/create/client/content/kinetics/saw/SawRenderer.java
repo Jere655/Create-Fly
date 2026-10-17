@@ -15,6 +15,7 @@ import com.zurrtum.create.client.flywheel.lib.transform.PoseTransformStack;
 import com.zurrtum.create.client.flywheel.lib.transform.TransformStack;
 import com.zurrtum.create.client.foundation.blockEntity.behaviour.filtering.FilteringRenderer;
 import com.zurrtum.create.client.foundation.blockEntity.behaviour.filtering.FilteringRenderer.FilterRenderState;
+import com.zurrtum.create.client.mixin.BlockBehaviourAccessor;
 import com.zurrtum.create.content.kinetics.base.IRotate;
 import com.zurrtum.create.content.kinetics.saw.SawBlock;
 import com.zurrtum.create.content.kinetics.saw.SawBlockEntity;
@@ -256,7 +257,7 @@ public class SawRenderer implements BlockEntityRenderer<SawBlockEntity, SawRende
         if (state.getValue(FACING).getAxis().isHorizontal()) {
             return CachedBuffers.partialFacing(
                 AllPartialModels.SHAFT_HALF,
-                state.getBlock().rotate(state, Rotation.CLOCKWISE_180)
+                ((BlockBehaviourAccessor) state.getBlock()).create$rotate(state, Rotation.CLOCKWISE_180)
             );
         }
         return CachedBuffers.block(KineticBlockEntityRenderer.KINETIC_BLOCK, KineticBlockEntityRenderer.shaft(axis));

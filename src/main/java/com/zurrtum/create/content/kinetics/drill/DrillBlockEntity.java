@@ -80,7 +80,7 @@ public class DrillBlockEntity extends BlockBreakingKineticBlockEntity {
             }
         } else if (blockEntityBelow instanceof HopperBlockEntity hbe) {
             for (ItemStack stack : Block.getDrops(stateToBreak, sl, breakingPos, null)) {
-                hbe.insertExist(stack);
+                com.zurrtum.create.infrastructure.items.InventoryUtil.of(hbe).insertExist(stack);
             }
         } else if (blockEntityAbove instanceof ChuteBlockEntity chute && chute.getItemMotion() > 0) {
             for (ItemStack stack : Block.getDrops(stateToBreak, sl, breakingPos, null)) {

@@ -7,6 +7,7 @@ import com.zurrtum.create.api.contraption.dispenser.MountedDispenseBehavior;
 import com.zurrtum.create.api.contraption.dispenser.MountedProjectileDispenseBehavior;
 import com.zurrtum.create.api.registry.SimpleRegistry;
 import com.zurrtum.create.content.contraptions.behaviour.MovementContext;
+import com.zurrtum.create.mixin.DispenserBlockAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.dispenser.BlockSource;
@@ -34,7 +35,7 @@ public enum DispenserBehaviorConverter implements SimpleRegistry.Provider<Item, 
     @Nullable
     @SuppressWarnings("deprecation")
     public MountedDispenseBehavior get(Item item, Level world) {
-        DispenseItemBehavior vanilla = ((DispenserBlock) Blocks.DISPENSER).getDispenseMethod(
+        DispenseItemBehavior vanilla = ((DispenserBlockAccessor) Blocks.DISPENSER).create$getDispenseMethod(
             world,
             item.getDefaultInstance()
         );

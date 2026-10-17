@@ -371,7 +371,7 @@ public class BasinBlockEntity extends SmartBlockEntity implements Clearable {
                 break;
             }
 
-            if (targetInv.countSpace(itemStack, 1) == 0) {
+            if (com.zurrtum.create.infrastructure.items.InventoryUtil.of(targetInv).countSpace(itemStack, 1) == 0) {
                 continue;
             }
             if (filter != null && !filter.test(itemStack)) {
@@ -384,7 +384,7 @@ public class BasinBlockEntity extends SmartBlockEntity implements Clearable {
             update = true;
 
             int count = itemStack.getCount();
-            int insert = targetInv.insertExist(itemStack, opposite);
+            int insert = com.zurrtum.create.infrastructure.items.InventoryUtil.of(targetInv).insertExist(itemStack, opposite);
             if (insert == count) {
                 iterator.remove();
             } else {
@@ -577,9 +577,9 @@ public class BasinBlockEntity extends SmartBlockEntity implements Clearable {
 
     private boolean acceptItemOutputsIntoBasin(List<ItemStack> outputItems, boolean simulate, Container targetInv) {
         if (simulate) {
-            return targetInv.countSpace(outputItems, 9, 17);
+            return com.zurrtum.create.infrastructure.items.InventoryUtil.of(targetInv).countSpace(outputItems, 9, 17);
         } else {
-            targetInv.insert(outputItems, 9, 17);
+            com.zurrtum.create.infrastructure.items.InventoryUtil.of(targetInv).insert(outputItems, 9, 17);
             return true;
         }
     }

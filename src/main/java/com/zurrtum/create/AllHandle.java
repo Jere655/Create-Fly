@@ -1458,7 +1458,7 @@ public class AllHandle {
                 int insert = inventory.insertExist(playerStack);
                 if (insert != count) {
                     count -= insert;
-                    insert = playerInventory.insert(
+                    insert = com.zurrtum.create.infrastructure.items.InventoryUtil.of(playerInventory).insert(
                         playerStack,
                         count,
                         Inventory.getSelectionSize(),

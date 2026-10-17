@@ -68,7 +68,7 @@ public class SawMovementBehaviour extends BlockBreakingMovementBehaviour {
     public void dropItemFromCutTree(MovementContext context, BlockPos pos, ItemStack stack) {
         Container inventory = context.contraption.getStorage().getAllItems();
         int count = stack.getCount();
-        int insert = inventory.insert(stack);
+        int insert = com.zurrtum.create.infrastructure.items.InventoryUtil.of(inventory).insert(stack);
         if (insert == count) {
             return;
         }

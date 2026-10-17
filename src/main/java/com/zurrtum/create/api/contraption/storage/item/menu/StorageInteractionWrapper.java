@@ -47,12 +47,12 @@ public class StorageInteractionWrapper implements ItemInventory {
 
     @Override
     public int insert(ItemStack stack) {
-        return inv.insert(stack);
+        return com.zurrtum.create.infrastructure.items.InventoryUtil.of(inv).insert(stack);
     }
 
     @Override
     public int extract(ItemStack stack) {
-        return inv.extract(stack);
+        return com.zurrtum.create.infrastructure.items.InventoryUtil.of(inv).extract(stack);
     }
 
     @Override

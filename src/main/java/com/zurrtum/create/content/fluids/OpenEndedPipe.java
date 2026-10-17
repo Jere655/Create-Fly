@@ -14,6 +14,7 @@ import com.zurrtum.create.infrastructure.fluids.BucketFluidInventory;
 import com.zurrtum.create.infrastructure.fluids.FluidInventory;
 import com.zurrtum.create.infrastructure.fluids.FluidStack;
 import com.zurrtum.create.infrastructure.fluids.SidedFluidInventory;
+import com.zurrtum.create.mixin.FlowingFluidAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -155,7 +156,7 @@ public class OpenEndedPipe extends FlowSource {
             var newFluidState = newState.getFluidState();
 
             if (newFluidState.getType() instanceof FlowingFluid flowing && world instanceof ServerLevel serverWorld) {
-                var potentiallyFilled = flowing.getNewLiquid(serverWorld, outputPos, newState);
+                var potentiallyFilled = ((FlowingFluidAccessor) flowing).create$getNewLiquid(serverWorld, outputPos, newState);
 
                 // Check if we'd immediately become the same fluid again.
                 if (potentiallyFilled.equals(fluidState)) {

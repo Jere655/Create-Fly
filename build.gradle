@@ -136,6 +136,11 @@ base {
 neoForge {
     version = neo_version
 
+    // The original Fabric source expressed these visibility requirements via
+    // an access widener. NeoForge consumes the equivalent access-transformer
+    // format during both compilation and runtime remapping.
+    accessTransformers = files('src/main/resources/META-INF/accesstransformer.cfg')
+
     mods {
         create {
             sourceSet(sourceSets.main)
@@ -174,6 +179,8 @@ sourceSets {
         java.exclude('com/zurrtum/create/compat/computercraft/ComputerDisplaySource.java')
         java.exclude('com/zurrtum/create/compat/computercraft/implementation/**')
         java.exclude('com/zurrtum/create/client/compat/**')
+        java.exclude('com/zurrtum/create/foundation/recipe/ComponentsIngredient.java')
+        java.exclude('com/zurrtum/create/mixin/IngredientMixin.java')
 
         // Fabric-specific resource/data-pack hooks. These need native
         // NeoForge replacements later.

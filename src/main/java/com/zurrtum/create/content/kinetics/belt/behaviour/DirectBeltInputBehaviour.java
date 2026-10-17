@@ -80,9 +80,9 @@ public class DirectBeltInputBehaviour extends BlockEntityBehaviour<SmartBlockEnt
         int count = inserted.stack.getCount();
         int insert;
         if (simulate) {
-            insert = lazy.countSpace(inserted.stack, count, side);
+            insert = com.zurrtum.create.infrastructure.items.InventoryUtil.of(lazy).countSpace(inserted.stack, count, side);
         } else {
-            insert = lazy.insertExist(inserted.stack, side);
+            insert = com.zurrtum.create.infrastructure.items.InventoryUtil.of(lazy).insertExist(inserted.stack, side);
         }
         if (insert == 0) {
             return inserted.stack;

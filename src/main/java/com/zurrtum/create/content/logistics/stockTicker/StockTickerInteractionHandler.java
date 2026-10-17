@@ -171,7 +171,7 @@ public class StockTickerInteractionHandler {
                 continue;
             }
 
-            receivedPayments.insert(toTransfer);
+            com.zurrtum.create.infrastructure.items.InventoryUtil.of(receivedPayments).insert(toTransfer);
         }
 
         tickerBE.broadcastPackageRequest(RequestType.PLAYER, order, null, ShoppingListItem.getAddress(mainHandItem));

@@ -5,6 +5,7 @@ import com.zurrtum.create.api.schematic.requirement.SpecialBlockEntityItemRequir
 import com.zurrtum.create.api.schematic.requirement.SpecialBlockItemRequirement;
 import com.zurrtum.create.api.schematic.requirement.SpecialEntityItemRequirement;
 import com.zurrtum.create.catnip.components.ComponentProcessors;
+import com.zurrtum.create.mixin.ItemFrameAccessor;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.decoration.ArmorStand;
@@ -147,7 +148,7 @@ public class ItemRequirement {
         }
 
         if (entity instanceof ItemFrame itemFrame) {
-            ItemStack frame = itemFrame.getFrameItemStack();
+            ItemStack frame = ((ItemFrameAccessor) itemFrame).create$getFrameItemStack();
             ItemStack displayedItem = ComponentProcessors.withUnsafeComponentsDiscarded(itemFrame.getItem());
             if (displayedItem.isEmpty()) {
                 return new ItemRequirement(ItemUseType.CONSUME, frame);

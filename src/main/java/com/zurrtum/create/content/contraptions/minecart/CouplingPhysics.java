@@ -4,6 +4,7 @@ import com.zurrtum.create.catnip.data.Couple;
 import com.zurrtum.create.catnip.data.Iterate;
 import com.zurrtum.create.catnip.math.VecHelper;
 import com.zurrtum.create.content.contraptions.minecart.capability.MinecartController;
+import com.zurrtum.create.mixin.AbstractMinecartAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
@@ -44,7 +45,7 @@ public class CouplingPhysics {
         }
 
         Couple<Vec3> corrections = Couple.create(null, null);
-        Couple<Double> maxSpeed = carts.map(cart -> cart.getMaxSpeed(world));
+        Couple<Double> maxSpeed = carts.map(cart -> ((AbstractMinecartAccessor) cart).create$getMaxSpeed(world));
         boolean firstLoop = true;
         for (boolean current : new boolean[]{true, false, true}) {
             AbstractMinecart cart = carts.get(current);
@@ -80,7 +81,7 @@ public class CouplingPhysics {
     }
 
     public static void softCollisionStep(ServerLevel world, Couple<AbstractMinecart> carts, double couplingLength) {
-        Couple<Float> maxSpeed = carts.map(cart -> (float) cart.getMaxSpeed(world));
+        Couple<Float> maxSpeed = carts.map(cart -> (float) ((AbstractMinecartAccessor) cart).create$getMaxSpeed(world));
         Couple<Boolean> canAddmotion = carts.map(MinecartSim2020::canAddMotion);
 
         // Assuming Minecarts will never move faster than 1 block/tick

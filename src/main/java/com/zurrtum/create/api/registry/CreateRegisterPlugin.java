@@ -31,7 +31,7 @@ public interface CreateRegisterPlugin {
     }
 
     private static List<CreateRegisterPlugin> createPlugins() {
-        return ServiceLoader.load(FMLLoader.getGameLayer(), CreateRegisterPlugin.class)
+        return ServiceLoader.load(FMLLoader.getCurrent().getGameLayer(), CreateRegisterPlugin.class)
             .stream()
             .map(ServiceLoader.Provider::get)
             .sorted(Comparator

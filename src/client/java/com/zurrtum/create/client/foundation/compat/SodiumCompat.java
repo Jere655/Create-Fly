@@ -36,11 +36,11 @@ public final class SodiumCompat {
 
     public static final Material SAW_TEXTURE = new Material(
         TextureAtlas.LOCATION_BLOCKS,
-        Create.asResource("block/saw_reversed")
+        Identifier.fromNamespaceAndPath(Create.MOD_ID, "block/saw_reversed")
     );
     public static final Material FACTORY_PANEL_TEXTURE = new Material(
         TextureAtlas.LOCATION_BLOCKS,
-        Create.asResource("block/factory_panel_connections_animated")
+        Identifier.fromNamespaceAndPath(Create.MOD_ID, "block/factory_panel_connections_animated")
     );
     public static final Material SAW_VANILLA_TEXTURE = new Material(
         TextureAtlas.LOCATION_BLOCKS,

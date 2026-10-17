@@ -357,9 +357,9 @@ public class ChuteBlockEntity extends SmartBlockEntity implements Clearable {
         Predicate<ItemStack> canAccept = this::canAcceptItem;
         ItemStack extracted;
         if (getExtractionMode() == ExtractionCountMode.UPTO) {
-            extracted = inv.extract(canAccept, getExtractionAmount());
+            extracted = com.zurrtum.create.infrastructure.items.InventoryUtil.of(inv).extract(canAccept, getExtractionAmount());
         } else {
-            extracted = inv.preciseExtract(canAccept, getExtractionAmount());
+            extracted = com.zurrtum.create.infrastructure.items.InventoryUtil.of(inv).preciseExtract(canAccept, getExtractionAmount());
         }
         if (!extracted.isEmpty()) {
             setItem(extracted, startLocation);
@@ -385,7 +385,7 @@ public class ChuteBlockEntity extends SmartBlockEntity implements Clearable {
                 return false;
             }
             if (!simulate) {
-                int insert = capBelow.insertExist(item, Direction.UP);
+                int insert = com.zurrtum.create.infrastructure.items.InventoryUtil.of(capBelow).insertExist(item, Direction.UP);
                 if (insert != 0) {
                     int count = item.getCount();
                     if (insert == count) {
@@ -396,7 +396,7 @@ public class ChuteBlockEntity extends SmartBlockEntity implements Clearable {
                     }
                     return true;
                 }
-            } else if (capBelow.countSpace(item, 1, Direction.UP) != 0) {
+            } else if (com.zurrtum.create.infrastructure.items.InventoryUtil.of(capBelow).countSpace(item, 1, Direction.UP) != 0) {
                 return true;
             }
             invVersionTracker.awaitNewVersion(capBelow);
@@ -455,7 +455,7 @@ public class ChuteBlockEntity extends SmartBlockEntity implements Clearable {
                     return false;
                 }
                 if (!simulate) {
-                    int insert = capAbove.insertExist(item, Direction.UP);
+                    int insert = com.zurrtum.create.infrastructure.items.InventoryUtil.of(capAbove).insertExist(item, Direction.UP);
                     if (insert != 0) {
                         int count = item.getCount();
                         if (insert == count) {
@@ -465,7 +465,7 @@ public class ChuteBlockEntity extends SmartBlockEntity implements Clearable {
                         }
                         return true;
                     }
-                } else if (capAbove.countSpace(item, 1, Direction.UP) != 0) {
+                } else if (com.zurrtum.create.infrastructure.items.InventoryUtil.of(capAbove).countSpace(item, 1, Direction.UP) != 0) {
                     return true;
                 }
                 invVersionTracker.awaitNewVersion(capAbove);

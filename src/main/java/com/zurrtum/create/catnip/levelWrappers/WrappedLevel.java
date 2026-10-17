@@ -83,8 +83,9 @@ public class WrappedLevel extends Level {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Collection<EnderDragonPart> dragonParts() {
-        return level.dragonParts();
+        return (Collection<EnderDragonPart>) (Collection<?>) level.dragonParts();
     }
 
     public Level getLevel() {

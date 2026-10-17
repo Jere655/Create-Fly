@@ -418,7 +418,7 @@ public class PackagerBlockEntity extends SmartBlockEntity implements Clearable {
         if (targetInv == null || targetInv instanceof PackagerItemHandler) {
             return;
         }
-        ItemStack stack = targetInv.extractAnyMax();
+        ItemStack stack = com.zurrtum.create.infrastructure.items.InventoryUtil.of(targetInv).extractAnyMax();
         if (stack.isEmpty()) {
             return;
         }
@@ -427,7 +427,7 @@ public class PackagerBlockEntity extends SmartBlockEntity implements Clearable {
             List<ItemStack> list = new ArrayList<>(PackageItem.SLOTS);
             list.add(stack);
             for (int i = 0, size = PackageItem.SLOTS - 1; i < size; i++) {
-                stack = targetInv.extractMax(s -> s.getItem().canFitInsideContainerItems());
+                stack = com.zurrtum.create.infrastructure.items.InventoryUtil.of(targetInv).extractMax(s -> s.getItem().canFitInsideContainerItems());
                 if (stack.isEmpty()) {
                     break;
                 }
@@ -549,7 +549,7 @@ public class PackagerBlockEntity extends SmartBlockEntity implements Clearable {
             }
             for (PackagingRequest request : requests) {
                 stack = request.item();
-                int extract = targetInv.extract(stack, request.getCount());
+                int extract = com.zurrtum.create.infrastructure.items.InventoryUtil.of(targetInv).extract(stack, request.getCount());
                 if (extract == 0) {
                     continue;
                 }
@@ -582,7 +582,7 @@ public class PackagerBlockEntity extends SmartBlockEntity implements Clearable {
             }
             for (PackagingRequest request : bulkyRequests) {
                 stack = request.item();
-                int extract = targetInv.extract(stack, request.getCount());
+                int extract = com.zurrtum.create.infrastructure.items.InventoryUtil.of(targetInv).extract(stack, request.getCount());
                 if (extract == 0) {
                     continue;
                 }

@@ -87,9 +87,9 @@ public class InvManipulationBehaviour extends CapManipulationBehaviourBase<Conta
         Predicate<ItemStack> test = getFilterTest(filter);
         ItemStack extract;
         if (mode == ExtractionCountMode.UPTO) {
-            extract = inventory.count(test, amount);
+            extract = com.zurrtum.create.infrastructure.items.InventoryUtil.of(inventory).count(test, amount);
         } else {
-            extract = inventory.preciseCount(test, amount);
+            extract = com.zurrtum.create.infrastructure.items.InventoryUtil.of(inventory).preciseCount(test, amount);
         }
         int count = extract.getCount();
         if (count == 0) {
@@ -103,11 +103,11 @@ public class InvManipulationBehaviour extends CapManipulationBehaviourBase<Conta
             return extract;
         }
         if (mode == ExtractionCountMode.UPTO) {
-            count = inventory.extract(extract);
+            count = com.zurrtum.create.infrastructure.items.InventoryUtil.of(inventory).extract(extract);
             extract.setCount(count);
             return extract;
         }
-        if (inventory.preciseExtract(extract)) {
+        if (com.zurrtum.create.infrastructure.items.InventoryUtil.of(inventory).preciseExtract(extract)) {
             return extract;
         }
         return ItemStack.EMPTY;
@@ -122,9 +122,9 @@ public class InvManipulationBehaviour extends CapManipulationBehaviourBase<Conta
         }
         int insert;
         if (shouldSimulate) {
-            insert = inventory.countSpace(stack);
+            insert = com.zurrtum.create.infrastructure.items.InventoryUtil.of(inventory).countSpace(stack);
         } else {
-            insert = inventory.insertExist(stack);
+            insert = com.zurrtum.create.infrastructure.items.InventoryUtil.of(inventory).insertExist(stack);
         }
         int count = stack.getCount();
         if (insert == count) {

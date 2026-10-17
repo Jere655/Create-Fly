@@ -84,7 +84,7 @@ public interface MountedDispenseBehavior {
         }
         // next, try the whole contraption inventory
         Container contraption = context.contraption.getStorage().getAllItems();
-        insert = contraption.insert(toInsert);
+        insert = com.zurrtum.create.infrastructure.items.InventoryUtil.of(contraption).insert(toInsert);
         if (insert == count) {
             return;
         }

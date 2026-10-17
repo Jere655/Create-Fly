@@ -100,7 +100,7 @@ public class VanillinConfig {
             }
 
             String valueString = value.getAsString();
-            VisualConfigValue parsed = VisualOverrideValue.parse(valueString);
+            VisualOverrideValue parsed = VisualOverrideValue.parse(valueString);
             if (parsed == null) {
                 Vanillin.CONFIG_LOGGER.warn(
                     "Mod '{}' attempted to override {} '{}' with an invalid value '{}', ignoring",

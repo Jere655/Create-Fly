@@ -267,7 +267,7 @@ public class FrogportBlockEntity extends PackagePortBlockEntity {
                 continue;
             }
             if (inventory.canTakeItemThroughFace(i, stack, null)) {
-                int insert = handler.insertExist(stack, 1);
+                int insert = com.zurrtum.create.infrastructure.items.InventoryUtil.of(handler).insertExist(stack, 1);
                 if (insert == 1) {
                     int count = stack.getCount();
                     if (count == 1) {
@@ -320,7 +320,7 @@ public class FrogportBlockEntity extends PackagePortBlockEntity {
     }
 
     public boolean tryPullingFrom(Container handler) {
-        ItemStack extract = handler.extract(stack -> {
+        ItemStack extract = com.zurrtum.create.infrastructure.items.InventoryUtil.of(handler).extract(stack -> {
             if (!PackageItem.isPackage(stack)) {
                 return false;
             }
