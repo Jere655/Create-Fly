@@ -6,9 +6,6 @@ import com.zurrtum.create.client.infrastructure.config.AllConfigs;
 import com.zurrtum.create.client.infrastructure.fluid.FluidConfig;
 import com.zurrtum.create.client.infrastructure.fluid.FluidFogModifier;
 import com.zurrtum.create.infrastructure.fluids.FlowableFluid;
-import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandler;
-import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.client.renderer.fog.FogRenderer;
@@ -48,7 +45,10 @@ public class AllFluidConfigs {
             return BiomeColors.getAverageWaterColor(mc.level, mc.player.blockPosition());
         }
     );
-    public static final boolean HAS_RENDER = FabricLoader.getInstance().isModLoaded("fabric-rendering-fluids-v1");
+    // Create Fly's own fluids are registered below. Third-party Fabric fluid
+    // render handlers have no NeoForge equivalent and are intentionally not
+    // queried from this loader.
+    public static final boolean HAS_RENDER = false;
 
     private static void config(FlowableFluid fluid) {
         config(fluid, -1, () -> 96.0f);
@@ -93,35 +93,7 @@ public class AllFluidConfigs {
         if (!HAS_RENDER) {
             return null;
         }
-        config = CACHE.get(fluid);
-        if (config != null) {
-            return config;
-        }
-        FluidRenderHandler handler = FluidRenderHandlerRegistry.INSTANCE.get(fluid);
-        if (handler == null) {
-            return null;
-        }
-        Minecraft client = Minecraft.getInstance();
-        FluidState state = fluid.defaultFluidState();
-        config = new FluidConfig(
-            () -> handler.getFluidSprites(
-                client.level,
-                client.player != null ? client.player.blockPosition() : null,
-                state
-            )[0],
-            () -> handler.getFluidSprites(
-                client.level,
-                client.player != null ? client.player.blockPosition() : null,
-                state
-            )[1],
-            component -> handler.getFluidColor(
-                client.level,
-                client.player != null ? client.player.blockPosition() : null,
-                state
-            )
-        );
-        CACHE.put(fluid, config);
-        return config;
+        return null;
     }
 
     public static void register() {

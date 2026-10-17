@@ -1,7 +1,6 @@
 package com.zurrtum.create.content.kinetics.deployer;
 
 import com.mojang.authlib.GameProfile;
-import com.zurrtum.create.api.entity.FakePlayerHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -20,11 +19,7 @@ public interface DeployerPlayer {
             owner == null ? FALLBACK_ID : owner,
             owner == null || name == null ? "Deployer" : name
         );
-        if (FakePlayerHandler.FABRIC) {
-            return new DeployerFabricFakePlayer(world, profile);
-        } else {
-            return new DeployerFakePlayer(world, profile);
-        }
+        return new DeployerFakePlayer(world, profile);
     }
 
     Pair<BlockPos, Float> getBlockBreakingProgress();

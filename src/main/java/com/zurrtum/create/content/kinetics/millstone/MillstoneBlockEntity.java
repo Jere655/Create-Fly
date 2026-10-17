@@ -9,7 +9,7 @@ import com.zurrtum.create.content.kinetics.base.KineticBlockEntity;
 import com.zurrtum.create.content.kinetics.belt.behaviour.DirectBeltInputBehaviour;
 import com.zurrtum.create.foundation.advancement.CreateTrigger;
 import com.zurrtum.create.infrastructure.items.SidedItemInventory;
-import com.zurrtum.create.infrastructure.transfer.SlotRangeCache;
+import com.zurrtum.create.infrastructure.util.SlotRangeCache;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;

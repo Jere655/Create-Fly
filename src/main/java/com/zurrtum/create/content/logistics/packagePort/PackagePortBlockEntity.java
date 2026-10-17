@@ -13,7 +13,7 @@ import com.zurrtum.create.infrastructure.component.ClipboardContent;
 import com.zurrtum.create.infrastructure.component.ClipboardEntry;
 import com.zurrtum.create.infrastructure.component.ClipboardType;
 import com.zurrtum.create.infrastructure.items.SidedItemInventory;
-import com.zurrtum.create.infrastructure.transfer.SlotRangeCache;
+import com.zurrtum.create.infrastructure.util.SlotRangeCache;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;

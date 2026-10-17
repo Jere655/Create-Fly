@@ -35,6 +35,7 @@ import net.minecraft.server.MinecraftServer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import org.slf4j.Logger;
 
 @Mod(Create.MOD_ID)
@@ -59,6 +60,7 @@ public class Create {
         // NeoForge owns the construction point, so registrations must happen
         // exactly once here before common setup events are dispatched.
         register();
+        modEventBus.addListener(AllTransfer::registerCapabilities);
         AllConfigs.register();
     }
 

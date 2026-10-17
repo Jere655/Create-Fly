@@ -1,6 +1,6 @@
 package com.zurrtum.create.infrastructure.fluids;
 
-import com.zurrtum.create.infrastructure.transfer.SlotRangeCache;
+import com.zurrtum.create.infrastructure.util.SlotRangeCache;
 import net.minecraft.core.Direction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

@@ -5,7 +5,7 @@ import com.zurrtum.create.catnip.data.Iterate;
 import com.zurrtum.create.content.kinetics.crafter.MechanicalCrafterBlockEntity.CrafterItemHandler;
 import com.zurrtum.create.foundation.codec.CreateCodecs;
 import com.zurrtum.create.infrastructure.items.SidedItemInventory;
-import com.zurrtum.create.infrastructure.transfer.SlotRangeCache;
+import com.zurrtum.create.infrastructure.util.SlotRangeCache;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Container;

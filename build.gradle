@@ -172,6 +172,12 @@ sourceSets {
         java.exclude('com/zurrtum/create/compat/computercraft/implementation/**')
         java.exclude('com/zurrtum/create/client/compat/**')
 
+        // Replaced with NeoForge's native capability and custom-ingredient APIs.
+        java.exclude('com/zurrtum/create/infrastructure/transfer/**')
+        java.exclude('com/zurrtum/create/content/kinetics/deployer/DeployerFabricFakePlayer.java')
+        java.exclude('com/zurrtum/create/foundation/recipe/ComponentsIngredient.java')
+        java.exclude('com/zurrtum/create/mixin/IngredientMixin.java')
+
         // Fabric-specific resource/data-pack hooks. These need native
         // NeoForge replacements later.
         java.exclude('com/zurrtum/create/mixin/ReloadListenerMixin.java')
@@ -185,6 +191,15 @@ sourceSets {
         java.exclude('com/zurrtum/create/client/mixin/AnimationResourceLoaderMixin.java')
         java.exclude('com/zurrtum/create/client/mixin/WrapperBlockStateModelMixin.java')
         java.exclude('com/zurrtum/create/client/mixin/FabricBlockStateModelMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/AbstractTerrainRenderContextMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/BlockRenderInfoMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/ClientPackSourceMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/FabricEIVMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/FluidVariantRenderHandlerMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/WaterRenderHandlerMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/CreativeModeInventoryScreenMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/LevelRendererMixin.java')
+        java.exclude('com/zurrtum/create/client/infrastructure/itemGroup/FabricCreativeGuiComponents.java')
     }
 }
 

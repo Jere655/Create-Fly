@@ -1,13 +1,13 @@
 package com.zurrtum.create.client.flywheel.impl;
 
 import com.zurrtum.create.client.flywheel.backend.engine.uniform.Uniforms;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.neoforged.fml.ModList;
 
 public class FlwImplXplatImpl implements FlwImplXplat {
     @Override
     public boolean isModLoaded(String modId) {
-        return FabricLoader.getInstance().isModLoaded(modId);
+        return ModList.get().getModFileById(modId) != null;
     }
 
     @Override
@@ -19,7 +19,7 @@ public class FlwImplXplatImpl implements FlwImplXplat {
 
     @Override
     public String getVersionStr() {
-        return Flywheel.version().getFriendlyString();
+        return Flywheel.version();
     }
 
     @Override

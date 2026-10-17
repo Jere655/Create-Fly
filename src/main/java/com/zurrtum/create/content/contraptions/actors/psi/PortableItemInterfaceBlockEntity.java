@@ -5,7 +5,7 @@ import com.zurrtum.create.content.contraptions.Contraption;
 import com.zurrtum.create.infrastructure.items.CombinedInvWrapper;
 import com.zurrtum.create.infrastructure.items.ItemStackHandler;
 import com.zurrtum.create.infrastructure.items.SidedItemInventory;
-import com.zurrtum.create.infrastructure.transfer.SlotRangeCache;
+import com.zurrtum.create.infrastructure.util.SlotRangeCache;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Container;

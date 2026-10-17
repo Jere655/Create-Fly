@@ -7,7 +7,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.vehicle.minecart.AbstractMinecart;
 import net.minecraft.world.entity.vehicle.minecart.MinecartBehavior;
 import net.minecraft.world.entity.vehicle.minecart.NewMinecartBehavior;
-import net.minecraft.world.entity.vehicle.minecart.NewMinecartBehavior.TrackIteration;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -24,11 +23,11 @@ public abstract class NewMinecartBehaviorMixin extends MinecartBehavior {
     private void onMinecartPass(
         ServerLevel level,
         CallbackInfo ci,
-        @Local TrackIteration trackIteration,
+        @Local Object trackIteration,
         @Local BlockPos pos,
         @Local BlockState state
     ) {
-        if (trackIteration.firstIteration && state.getBlock() instanceof MinecartPassBlock block) {
+        if (((TrackIterationAccessor) trackIteration).create$isFirstIteration() && state.getBlock() instanceof MinecartPassBlock block) {
             block.onMinecartPass(state, level, pos, minecart);
         }
     }

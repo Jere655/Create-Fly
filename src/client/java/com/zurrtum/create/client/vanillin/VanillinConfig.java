@@ -3,10 +3,6 @@ package com.zurrtum.create.client.vanillin;
 import com.zurrtum.create.catnip.config.Builder;
 import com.zurrtum.create.catnip.config.ConfigBase;
 import com.zurrtum.create.client.vanillin.config.*;
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.ModContainer;
-import net.fabricmc.loader.api.metadata.CustomValue;
-import net.fabricmc.loader.api.metadata.ModMetadata;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,86 +17,9 @@ public class VanillinConfig {
     private static CClient client;
 
     public static ModOverrides modOverrides() {
-        var blockEntities = new ArrayList<VisualOverride>();
-        var entities = new ArrayList<VisualOverride>();
-
-        for (ModContainer container : FabricLoader.getInstance().getAllMods()) {
-            ModMetadata meta = container.getMetadata();
-            var modid = meta.getId();
-
-            if (meta.containsCustomValue(VANILLIN_OVERRIDES)) {
-                CustomValue overridesValue = meta.getCustomValue(VANILLIN_OVERRIDES);
-
-                if (overridesValue.getType() != CustomValue.CvType.OBJECT) {
-                    Vanillin.CONFIG_LOGGER.warn(
-                        "Mod '{}' attempted to override options with an invalid value, ignoring",
-                        modid
-                    );
-                    continue;
-                }
-
-                var overrides = overridesValue.getAsObject();
-
-                readSection(blockEntities, modid, overrides, "block_entities", "block entity");
-                readSection(entities, modid, overrides, "entities", "entity");
-            }
-        }
-
-        return new ModOverrides(blockEntities, entities);
-    }
-
-    private static void readSection(
-        List<VisualOverride> dst,
-        String modid,
-        CustomValue.CvObject overrides,
-        String sectionName,
-        String singular
-    ) {
-        if (!overrides.containsKey(sectionName)) {
-            return;
-        }
-
-        var section = overrides.get(sectionName);
-
-        if (section.getType() != CustomValue.CvType.OBJECT) {
-            Vanillin.CONFIG_LOGGER.warn(
-                "Mod '{}' attempted to override {} with an invalid value, ignoring",
-                modid,
-                sectionName
-            );
-            return;
-        }
-
-        for (Map.Entry<String, CustomValue> entry : section.getAsObject()) {
-            var value = entry.getValue();
-            var key = entry.getKey();
-            if (value.getType() != CustomValue.CvType.STRING) {
-                Vanillin.CONFIG_LOGGER.warn(
-                    "Mod '{}' attempted to override {} '{}' with an invalid value, ignoring",
-                    modid,
-                    singular,
-                    key
-                );
-                continue;
-            }
-
-            var valueString = value.getAsString();
-
-            var parsed = VisualOverrideValue.parse(valueString);
-
-            if (parsed == null) {
-                Vanillin.CONFIG_LOGGER.warn(
-                    "Mod '{}' attempted to override {} '{}' with an invalid value '{}', ignoring",
-                    modid,
-                    singular,
-                    key,
-                    valueString
-                );
-                continue;
-            }
-
-            dst.add(new VisualOverride(key, modid, parsed));
-        }
+        // Fabric metadata custom values are not available on NeoForge. Native
+        // override metadata can be added once Vanillin's loader bridge is ported.
+        return new ModOverrides(new ArrayList<>(), new ArrayList<>());
     }
 
     public static CClient client() {

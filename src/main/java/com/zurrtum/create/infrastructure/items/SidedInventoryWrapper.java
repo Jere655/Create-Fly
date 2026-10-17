@@ -1,6 +1,6 @@
 package com.zurrtum.create.infrastructure.items;
 
-import com.zurrtum.create.infrastructure.transfer.SlotRangeCache;
+import com.zurrtum.create.infrastructure.util.SlotRangeCache;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.ContainerUser;

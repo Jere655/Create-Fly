@@ -68,6 +68,7 @@
     "StructureTemplateMixin",
     "SynchedEntityDataBuilderMixin",
     "SynchedEntityDataMixin",
+    "TrackIterationAccessor",
     "TooltipContextMixin",
     "UtilMixin",
     "WeatheringCopperMixin",

@@ -22,7 +22,6 @@ public class MixinPlugin implements IMixinConfigPlugin {
         mixins.add("CreativeModeTabMixin");
         mixins.add("CreativeModeTabsMixin");
         mixins.add("DimensionDataStorageMixin");
-        mixins.add("IngredientMixin");
 
         // ComputerCraft, Architectury, JEI and Fabric resource-loader
         // integrations are intentionally disabled until their native
