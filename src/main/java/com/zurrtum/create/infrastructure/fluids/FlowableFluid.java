@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.WaterFluid;
+import net.neoforged.neoforge.fluids.FluidType;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class FlowableFluid extends WaterFluid {
@@ -31,6 +32,11 @@ public abstract class FlowableFluid extends WaterFluid {
 
     public FluidEntry getEntry() {
         return entry;
+    }
+
+    @Override
+    public FluidType getFluidType() {
+        return entry.fluidType.get();
     }
 
     @Override

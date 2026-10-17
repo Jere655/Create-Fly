@@ -19,7 +19,7 @@ public final class FlwImpl {
         BackendManagerImpl.init();
 
         // backend
-        FabricFlwConfig.INSTANCE.register();
+        NeoForgeFlwConfig.INSTANCE.register();
         FlwBackend.init(FlwConfig.INSTANCE.backendConfig());
     }
 

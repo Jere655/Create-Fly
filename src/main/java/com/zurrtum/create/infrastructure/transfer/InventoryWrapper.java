@@ -1,742 +1,436 @@
 package com.zurrtum.create.infrastructure.transfer;
 
+import com.google.common.collect.MapMaker;
 import com.zurrtum.create.infrastructure.items.ItemInventory;
-import com.zurrtum.create.infrastructure.items.SidedItemInventory;
-import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenCustomHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntSortedMap;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.SlottedStorage;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
-import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
-import net.fabricmc.fabric.impl.transfer.item.ItemVariantImpl;
 import net.minecraft.core.Direction;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public abstract class InventoryWrapper<T extends Storage<ItemVariant>, S extends StorageView<ItemVariant>> implements ItemInventory {
-    protected T storage;
-    protected int capacity;
+/**
+ * Presents a native NeoForge item resource handler as a vanilla/Create container.
+ * Reads return detached ItemStacks; all writes use NeoForge transactions so native
+ * sided rules, validity checks, component identity, and rollback are retained.
+ */
+public final class InventoryWrapper implements ItemInventory {
+    private static final Map<ResourceHandler<ItemResource>, Container> WRAPPERS = new MapMaker()
+        .weakKeys()
+        .weakValues()
+        .makeMap();
 
-    public InventoryWrapper(T storage) {
-        this.storage = storage;
-        init();
+    private final ResourceHandler<ItemResource> storage;
+
+    private InventoryWrapper(ResourceHandler<ItemResource> storage) {
+        this.storage = Objects.requireNonNull(storage);
     }
 
-    public static Container of(Storage<ItemVariant> storage) {
-        InventoryWrapper<?, ?> inventory;
-        if (storage instanceof SlottedStorage<ItemVariant> slottedStorage) {
-            inventory = new Slotted(slottedStorage);
-        } else {
-            inventory = new Direct(storage);
+    public static Container of(ResourceHandler<ItemResource> storage) {
+        return WRAPPERS.computeIfAbsent(storage, InventoryWrapper::new);
+    }
+
+    public ResourceHandler<ItemResource> resourceHandler() {
+        return storage;
+    }
+
+    @Override
+    public int getContainerSize() {
+        return storage.size();
+    }
+
+    @Override
+    public ItemStack getItem(int slot) {
+        return storage.getResource(slot).toStack(storage.getAmountAsInt(slot));
+    }
+
+    @Override
+    public void setItem(int slot, ItemStack stack) {
+        try (Transaction transaction = Transaction.openRoot()) {
+            if (replaceSlot(slot, stack, transaction)) {
+                transaction.commit();
+            }
         }
-        if (storage.supportsInsertion() && storage.supportsExtraction()) {
-            return inventory;
+    }
+
+    @Override
+    public ItemStack removeItem(int slot, int amount) {
+        if (amount <= 0) {
+            return ItemStack.EMPTY;
         }
-        return new Filter(inventory);
+        ItemResource resource = storage.getResource(slot);
+        int stored = storage.getAmountAsInt(slot);
+        if (resource.isEmpty() || stored <= 0) {
+            return ItemStack.EMPTY;
+        }
+        try (Transaction transaction = Transaction.openRoot()) {
+            int extracted = storage.extract(slot, resource, Math.min(amount, stored), transaction);
+            if (extracted > 0) {
+                transaction.commit();
+                return onExtract(resource.toStack(extracted));
+            }
+        }
+        return ItemStack.EMPTY;
+    }
+
+    @Override
+    public ItemStack removeItemNoUpdate(int slot) {
+        ItemResource resource = storage.getResource(slot);
+        int stored = storage.getAmountAsInt(slot);
+        if (resource.isEmpty() || stored <= 0) {
+            return ItemStack.EMPTY;
+        }
+        try (Transaction transaction = Transaction.openRoot()) {
+            int extracted = storage.extract(slot, resource, stored, transaction);
+            if (extracted > 0) {
+                transaction.commit();
+                return onExtract(resource.toStack(extracted));
+            }
+        }
+        return ItemStack.EMPTY;
+    }
+
+    @Override
+    public int getMaxStackSize() {
+        int capacity = 0;
+        for (int i = 0, size = storage.size(); i < size; i++) {
+            capacity = Math.max(capacity, storage.getCapacityAsInt(i, ItemResource.EMPTY));
+        }
+        return capacity == 0 ? 64 : capacity;
+    }
+
+    @Override
+    public boolean canPlaceItem(int slot, ItemStack stack) {
+        if (stack.isEmpty()) {
+            return false;
+        }
+        ItemResource resource = ItemResource.of(stack);
+        return storage.isValid(slot, resource) && simulateInsert(slot, resource, 1) > 0;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        for (int i = 0, size = storage.size(); i < size; i++) {
+            if (!storage.getResource(i).isEmpty() && storage.getAmountAsInt(i) > 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
     public void clearContent() {
-        try (Transaction transaction = Transaction.openOuter()) {
-            for (StorageView<ItemVariant> view : storage.nonEmptyViews()) {
-                view.extract(view.getResource(), view.getAmount(), transaction);
+        try (Transaction transaction = Transaction.openRoot()) {
+            for (int i = 0, size = storage.size(); i < size; i++) {
+                ItemResource resource = storage.getResource(i);
+                int amount = storage.getAmountAsInt(i);
+                if (!resource.isEmpty() && amount > 0) {
+                    storage.extract(i, resource, amount, transaction);
+                }
             }
             transaction.commit();
+        }
+    }
+
+    @Override
+    public boolean stillValid(Player player) {
+        return true;
+    }
+
+    @Override
+    public void setChanged() {
+        // Native resource handlers publish dirty notifications on root commit.
+    }
+
+    @Override
+    public int count(ItemStack stack, int maxAmount) {
+        if (stack.isEmpty() || maxAmount <= 0) {
+            return 0;
+        }
+        ItemResource resource = ItemResource.of(stack);
+        try (Transaction transaction = Transaction.openRoot()) {
+            return storage.extract(resource, maxAmount, transaction);
         }
     }
 
     @Override
     public int count(ItemStack stack) {
-        int maxAmount = stack.getCount();
-        if (maxAmount == 0) {
-            return 0;
-        }
-        return count(stack, maxAmount);
-    }
-
-    @Override
-    public int count(ItemStack stack, int maxAmount) {
-        try (Transaction transaction = Transaction.openOuter()) {
-            long extract = storage.extract(
-                ItemVariant.of(stack.getItem(), stack.getComponentsPatch()),
-                maxAmount,
-                transaction
-            );
-            transaction.abort();
-            return (int) extract;
-        }
-    }
-
-    @Override
-    @SuppressWarnings("UnstableApiUsage")
-    public ItemStack count(Predicate<ItemStack> predicate) {
-        try (Transaction transaction = Transaction.openOuter()) {
-            for (StorageView<ItemVariant> view : storage.nonEmptyViews()) {
-                ItemVariant variant = view.getResource();
-                ItemStack stack = ((ItemVariantImpl) variant).getCachedStack();
-                if (predicate.test(stack)) {
-                    long extract = view.extract(variant, view.getAmount(), transaction);
-                    if (extract == 0) {
-                        continue;
-                    }
-                    transaction.abort();
-                    return directCopy(stack, (int) extract);
-                }
-            }
-            transaction.abort();
-        }
-        return ItemStack.EMPTY;
-    }
-
-    @Override
-    @SuppressWarnings("UnstableApiUsage")
-    public ItemStack count(Predicate<ItemStack> predicate, int maxAmount) {
-        if (maxAmount == 0) {
-            return ItemStack.EMPTY;
-        }
-        try (Transaction transaction = Transaction.openOuter()) {
-            for (StorageView<ItemVariant> view : storage.nonEmptyViews()) {
-                ItemVariant variant = view.getResource();
-                ItemStack stack = ((ItemVariantImpl) variant).getCachedStack();
-                if (predicate.test(stack)) {
-                    long extract = storage.extract(variant, maxAmount, transaction);
-                    if (extract == 0) {
-                        continue;
-                    }
-                    transaction.abort();
-                    return directCopy(stack, (int) extract);
-                }
-            }
-            transaction.abort();
-        }
-        return ItemStack.EMPTY;
-    }
-
-    @Override
-    public ItemStack preciseCount(Predicate<ItemStack> predicate, int maxAmount) {
-        if (maxAmount == 0) {
-            return ItemStack.EMPTY;
-        }
-        try (Transaction transaction = Transaction.openOuter()) {
-            for (StorageView<ItemVariant> view : storage.nonEmptyViews()) {
-                ItemVariant variant = view.getResource();
-                ItemStack stack = ((ItemVariantImpl) variant).getCachedStack();
-                if (predicate.test(stack)) {
-                    long extract = storage.extract(variant, maxAmount, transaction);
-                    if (extract != maxAmount) {
-                        continue;
-                    }
-                    transaction.abort();
-                    return directCopy(stack, (int) extract);
-                }
-            }
-            transaction.abort();
-        }
-        return ItemStack.EMPTY;
-    }
-
-    @Override
-    @SuppressWarnings("UnstableApiUsage")
-    public int countAll(Predicate<ItemStack> predicate, int maxAmount) {
-        if (maxAmount == 0) {
-            return 0;
-        }
-        long count = 0;
-        try (Transaction transaction = Transaction.openOuter()) {
-            for (StorageView<ItemVariant> view : storage.nonEmptyViews()) {
-                ItemVariant variant = view.getResource();
-                if (predicate.test(((ItemVariantImpl) variant).getCachedStack())) {
-                    count += view.extract(variant, view.getAmount(), transaction);
-                    if (count >= maxAmount) {
-                        transaction.abort();
-                        return maxAmount;
-                    }
-                }
-            }
-            transaction.abort();
-        }
-        return (int) count;
-    }
-
-    @Override
-    @SuppressWarnings("UnstableApiUsage")
-    public ItemStack countAny() {
-        try (Transaction transaction = Transaction.openOuter()) {
-            for (StorageView<ItemVariant> view : storage.nonEmptyViews()) {
-                ItemVariant variant = view.getResource();
-                ItemStack stack = ((ItemVariantImpl) variant).getCachedStack();
-                long extract = view.extract(variant, view.getAmount(), transaction);
-                if (extract == 0) {
-                    continue;
-                }
-                transaction.abort();
-                return directCopy(stack, (int) extract);
-            }
-            transaction.abort();
-        }
-        return ItemStack.EMPTY;
-    }
-
-    @Override
-    @SuppressWarnings("UnstableApiUsage")
-    public ItemStack countAny(int maxAmount) {
-        if (maxAmount == 0) {
-            return ItemStack.EMPTY;
-        }
-        try (Transaction transaction = Transaction.openOuter()) {
-            for (StorageView<ItemVariant> view : storage.nonEmptyViews()) {
-                ItemVariant variant = view.getResource();
-                ItemStack stack = ((ItemVariantImpl) variant).getCachedStack();
-                long extract = storage.extract(variant, maxAmount, transaction);
-                if (extract == 0) {
-                    continue;
-                }
-                transaction.abort();
-                return directCopy(stack, (int) extract);
-            }
-            transaction.abort();
-        }
-        return ItemStack.EMPTY;
-    }
-
-    @Override
-    public int countSpace(ItemStack stack) {
-        int maxAmount = stack.getCount();
-        if (maxAmount == 0) {
-            return 0;
-        }
-        return countSpace(stack, maxAmount);
+        return count(stack, Math.max(0, stack.getCount()));
     }
 
     @Override
     public int countSpace(ItemStack stack, int maxAmount) {
-        try (Transaction transaction = Transaction.openOuter()) {
-            long insert = storage.insert(
-                ItemVariant.of(stack.getItem(), stack.getComponentsPatch()),
-                maxAmount,
-                transaction
-            );
-            transaction.abort();
-            return (int) insert;
+        if (stack.isEmpty() || maxAmount <= 0) {
+            return 0;
+        }
+        ItemResource resource = ItemResource.of(stack);
+        try (Transaction transaction = Transaction.openRoot()) {
+            return storage.insert(resource, maxAmount, transaction);
+        }
+    }
+
+    @Override
+    public int countSpace(ItemStack stack) {
+        return countSpace(stack, Math.max(0, stack.getCount()));
+    }
+
+    @Override
+    public int countSpace(ItemStack stack, int maxAmount, int start, int end) {
+        if (stack.isEmpty() || maxAmount <= 0) {
+            return 0;
+        }
+        ItemResource resource = ItemResource.of(stack);
+        int remaining = maxAmount;
+        try (Transaction transaction = Transaction.openRoot()) {
+            for (int i = Math.max(0, start), size = Math.min(end, storage.size() - 1); i <= size && remaining > 0; i++) {
+                remaining -= storage.insert(i, resource, remaining, transaction);
+            }
+            return maxAmount - remaining;
         }
     }
 
     @Override
     public boolean countSpace(List<ItemStack> stacks) {
-        int listSize = stacks.size();
-        if (listSize == 0) {
-            return true;
-        }
-        if (listSize == 1) {
-            ItemStack stack = stacks.getFirst();
-            int count = stack.getCount();
-            return countSpace(stack, count) == count;
-        }
-        Object2IntLinkedOpenCustomHashMap<ItemStack> map = new Object2IntLinkedOpenCustomHashMap<>(
-            ITEM_STACK_HASH_STRATEGY);
-        for (ItemStack stack : stacks) {
-            map.merge(stack, stack.getCount(), Integer::sum);
-        }
-        Object2IntSortedMap.FastSortedEntrySet<ItemStack> entries = map.object2IntEntrySet();
-        if (entries.size() == 1) {
-            Object2IntMap.Entry<ItemStack> entry = entries.first();
-            ItemStack stack = entry.getKey();
-            int count = entry.getIntValue();
-            return countSpace(stack, count) == count;
-        }
-        try (Transaction transaction = Transaction.openOuter()) {
-            ObjectIterator<Object2IntMap.Entry<ItemStack>> iterator = entries.fastIterator();
-            do {
-                Object2IntMap.Entry<ItemStack> entry = iterator.next();
-                ItemStack stack = entry.getKey();
-                int count = entry.getIntValue();
-                long insert = storage.insert(
-                    ItemVariant.of(stack.getItem(), stack.getComponentsPatch()),
-                    count,
-                    transaction
-                );
-                if (insert < count) {
-                    transaction.abort();
+        try (Transaction transaction = Transaction.openRoot()) {
+            for (ItemStack stack : stacks) {
+                if (stack.isEmpty()) {
+                    continue;
+                }
+                ItemResource resource = ItemResource.of(stack);
+                if (storage.insert(resource, stack.getCount(), transaction) != stack.getCount()) {
                     return false;
                 }
-            } while (iterator.hasNext());
-            transaction.abort();
+            }
             return true;
         }
-    }
-
-    @Override
-    public int countSpace(ItemStack stack, int maxAmount, int start, int end) {
-        return countSpace(stack, maxAmount);
     }
 
     @Override
     public boolean countSpace(List<ItemStack> stacks, int start, int end) {
-        return countSpace(stacks);
+        int[] remaining = new int[stacks.size()];
+        for (int i = 0; i < stacks.size(); i++) {
+            remaining[i] = stacks.get(i).isEmpty() ? 0 : stacks.get(i).getCount();
+        }
+        try (Transaction transaction = Transaction.openRoot()) {
+            int last = Math.min(end, storage.size() - 1);
+            for (int slot = Math.max(0, start); slot <= last; slot++) {
+                ItemResource current = storage.getResource(slot);
+                int currentAmount = storage.getAmountAsInt(slot);
+                for (int index = 0; index < stacks.size(); index++) {
+                    int requested = remaining[index];
+                    if (requested <= 0) {
+                        continue;
+                    }
+                    ItemStack stack = stacks.get(index);
+                    ItemResource resource = ItemResource.of(stack);
+                    if (!current.isEmpty() && currentAmount > 0 && !current.equals(resource)) {
+                        continue;
+                    }
+                    int inserted = storage.insert(slot, resource, requested, transaction);
+                    remaining[index] -= inserted;
+                    if (inserted > 0) {
+                        current = resource;
+                        currentAmount += inserted;
+                    }
+                }
+            }
+            for (int amount : remaining) {
+                if (amount > 0) {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 
     @Override
-    public int extract(ItemStack stack) {
-        int maxAmount = stack.getCount();
-        if (maxAmount == 0) {
-            return 0;
-        }
-        return extract(stack, maxAmount);
+    public boolean matches(ItemStack stack, ItemStack otherStack) {
+        return !stack.isEmpty() && !otherStack.isEmpty()
+            && ItemResource.of(stack).equals(ItemResource.of(otherStack));
     }
 
     @Override
     public int extract(ItemStack stack, int maxAmount) {
-        try (Transaction transaction = Transaction.openOuter()) {
-            long extract = storage.extract(
-                ItemVariant.of(stack.getItem(), stack.getComponentsPatch()),
-                maxAmount,
-                transaction
-            );
+        if (stack.isEmpty() || maxAmount <= 0) {
+            return 0;
+        }
+        ItemResource resource = ItemResource.of(stack);
+        try (Transaction transaction = Transaction.openRoot()) {
+            int extracted = storage.extract(resource, maxAmount, transaction);
             transaction.commit();
-            return (int) extract;
+            return extracted;
         }
     }
 
     @Override
-    @SuppressWarnings("UnstableApiUsage")
     public ItemStack extract(Predicate<ItemStack> predicate) {
-        try (Transaction transaction = Transaction.openOuter()) {
-            for (StorageView<ItemVariant> view : storage.nonEmptyViews()) {
-                ItemVariant variant = view.getResource();
-                ItemStack stack = ((ItemVariantImpl) variant).getCachedStack();
-                if (predicate.test(stack)) {
-                    long extract = view.extract(variant, view.getAmount(), transaction);
-                    if (extract == 0) {
-                        continue;
-                    }
+        for (int i = 0, size = storage.size(); i < size; i++) {
+            ItemResource resource = storage.getResource(i);
+            int amount = storage.getAmountAsInt(i);
+            if (resource.isEmpty() || amount <= 0 || !predicate.test(resource.toStack(amount))) {
+                continue;
+            }
+            try (Transaction transaction = Transaction.openRoot()) {
+                int extracted = storage.extract(i, resource, amount, transaction);
+                if (extracted > 0) {
                     transaction.commit();
-                    return directCopy(stack, (int) extract);
+                    return onExtract(resource.toStack(extracted));
                 }
             }
-            transaction.abort();
         }
         return ItemStack.EMPTY;
     }
 
     @Override
-    @SuppressWarnings("UnstableApiUsage")
     public ItemStack extract(Predicate<ItemStack> predicate, int maxAmount) {
-        if (maxAmount == 0) {
+        if (maxAmount <= 0) {
             return ItemStack.EMPTY;
         }
-        try (Transaction transaction = Transaction.openOuter()) {
-            for (StorageView<ItemVariant> view : storage.nonEmptyViews()) {
-                ItemVariant variant = view.getResource();
-                ItemStack stack = ((ItemVariantImpl) variant).getCachedStack();
-                if (predicate.test(stack)) {
-                    long extract = storage.extract(variant, maxAmount, transaction);
-                    if (extract == 0) {
-                        continue;
-                    }
+        for (int i = 0, size = storage.size(); i < size; i++) {
+            ItemResource resource = storage.getResource(i);
+            int amount = storage.getAmountAsInt(i);
+            if (resource.isEmpty() || amount <= 0 || !predicate.test(resource.toStack(amount))) {
+                continue;
+            }
+            try (Transaction transaction = Transaction.openRoot()) {
+                int extracted = storage.extract(resource, maxAmount, transaction);
+                if (extracted > 0) {
                     transaction.commit();
-                    return directCopy(stack, (int) extract);
+                    return onExtract(resource.toStack(extracted));
                 }
             }
-            transaction.abort();
         }
         return ItemStack.EMPTY;
     }
 
+    @Override
     public List<ItemStack> extract(List<ItemStack> stacks) {
-        int listSize = stacks.size();
-        if (listSize == 0) {
+        List<ItemStack> leftovers = new ArrayList<>();
+        boolean changed = false;
+        try (Transaction transaction = Transaction.openRoot()) {
+            for (ItemStack stack : stacks) {
+                if (stack.isEmpty()) {
+                    continue;
+                }
+                ItemResource resource = ItemResource.of(stack);
+                int requested = stack.getCount();
+                int extracted = storage.extract(resource, requested, transaction);
+                changed |= extracted > 0;
+                if (extracted < requested) {
+                    leftovers.add(resource.toStack(requested - extracted));
+                }
+            }
+            if (changed) {
+                transaction.commit();
+            }
+        }
+        if (!changed) {
             return stacks;
         }
-        if (listSize == 1) {
-            ItemStack stack = stacks.getFirst();
-            int count = stack.getCount();
-            int extract = extract(stacks.getFirst(), count);
-            if (count == extract) {
-                return List.of();
-            }
-            if (extract == 0) {
-                return stacks;
-            }
-            return List.of(directCopy(stack, count - extract));
-        }
-        Object2IntLinkedOpenCustomHashMap<ItemStack> map = new Object2IntLinkedOpenCustomHashMap<>(
-            ITEM_STACK_HASH_STRATEGY);
-        for (ItemStack stack : stacks) {
-            map.merge(stack, stack.getCount(), Integer::sum);
-        }
-        Object2IntSortedMap.FastSortedEntrySet<ItemStack> entries = map.object2IntEntrySet();
-        if (entries.size() == 1) {
-            Object2IntMap.Entry<ItemStack> entry = entries.first();
-            ItemStack stack = entry.getKey();
-            int count = entry.getIntValue();
-            int extract = extract(stack, count);
-            if (count == extract) {
-                return List.of();
-            }
-            if (extract == 0) {
-                return stacks;
-            }
-            return List.of(directCopy(stack, count - extract));
-        }
-        try (Transaction transaction = Transaction.openOuter()) {
-            boolean dirty = false;
-            Map<ItemStack, ItemVariant> cache = new IdentityHashMap<>();
-            for (StorageView<ItemVariant> view : storage.nonEmptyViews()) {
-                ObjectIterator<Object2IntMap.Entry<ItemStack>> iterator = entries.fastIterator();
-                do {
-                    Object2IntMap.Entry<ItemStack> entry = iterator.next();
-                    ItemStack stack = entry.getKey();
-                    int count = entry.getIntValue();
-                    ItemVariant variant = cache.computeIfAbsent(stack, ItemVariant::of);
-                    long extract = view.extract(variant, count, transaction);
-                    if (extract == 0) {
-                        continue;
-                    }
-                    if (extract == count) {
-                        iterator.remove();
-                        if (entries.isEmpty()) {
-                            transaction.commit();
-                            return List.of();
-                        }
-                    } else {
-                        entry.setValue(count - (int) extract);
-                    }
-                    dirty = true;
-                    break;
-                } while (iterator.hasNext());
-            }
-            if (dirty) {
-                List<ItemStack> result = new ArrayList<>();
-                for (Object2IntMap.Entry<ItemStack> entry : entries) {
-                    ItemStack stack = entry.getKey();
-                    int count = entry.getIntValue();
-                    if (stack.getCount() == count) {
-                        result.add(stack);
-                    } else {
-                        result.add(directCopy(stack, count));
-                    }
-                }
-                transaction.commit();
-                return result;
-            } else {
-                return stacks;
-            }
-        }
+        return leftovers;
     }
 
     @Override
-    @SuppressWarnings("UnstableApiUsage")
-    public ItemStack extractAny() {
-        try (Transaction transaction = Transaction.openOuter()) {
-            for (StorageView<ItemVariant> view : storage.nonEmptyViews()) {
-                ItemVariant variant = view.getResource();
-                long extract = view.extract(variant, view.getAmount(), transaction);
-                if (extract == 0) {
+    public int extractAll(Predicate<ItemStack> predicate, int maxAmount) {
+        if (maxAmount <= 0) {
+            return 0;
+        }
+        int remaining = maxAmount;
+        try (Transaction transaction = Transaction.openRoot()) {
+            for (int i = 0, size = storage.size(); i < size && remaining > 0; i++) {
+                ItemResource resource = storage.getResource(i);
+                int amount = storage.getAmountAsInt(i);
+                if (resource.isEmpty() || amount <= 0 || !predicate.test(resource.toStack(amount))) {
                     continue;
                 }
-                transaction.commit();
-                return directCopy(((ItemVariantImpl) variant).getCachedStack(), (int) extract);
+                remaining -= storage.extract(i, resource, remaining, transaction);
             }
-            transaction.abort();
+            transaction.commit();
+        }
+        return maxAmount - remaining;
+    }
+
+    @Override
+    public ItemStack countAny(int maxAmount, Direction side) {
+        // This handler is already side-scoped; countAny is a simulation, not an extraction.
+        return countAny(maxAmount);
+    }
+
+    @Override
+    public ItemStack extractAny() {
+        for (int i = 0, size = storage.size(); i < size; i++) {
+            ItemResource resource = storage.getResource(i);
+            int amount = storage.getAmountAsInt(i);
+            if (resource.isEmpty() || amount <= 0) {
+                continue;
+            }
+            try (Transaction transaction = Transaction.openRoot()) {
+                int extracted = storage.extract(i, resource, amount, transaction);
+                if (extracted > 0) {
+                    transaction.commit();
+                    return onExtract(resource.toStack(extracted));
+                }
+            }
         }
         return ItemStack.EMPTY;
     }
 
     @Override
-    @SuppressWarnings("UnstableApiUsage")
     public ItemStack extractAny(int maxAmount) {
-        if (maxAmount == 0) {
+        if (maxAmount <= 0) {
             return ItemStack.EMPTY;
         }
-        try (Transaction transaction = Transaction.openOuter()) {
-            for (StorageView<ItemVariant> view : storage.nonEmptyViews()) {
-                ItemVariant variant = view.getResource();
-                long extract = storage.extract(variant, maxAmount, transaction);
-                if (extract == 0) {
-                    continue;
-                }
-                transaction.commit();
-                return directCopy(((ItemVariantImpl) variant).getCachedStack(), (int) extract);
+        for (int i = 0, size = storage.size(); i < size; i++) {
+            ItemResource resource = storage.getResource(i);
+            if (resource.isEmpty() || storage.getAmountAsInt(i) <= 0) {
+                continue;
             }
-            transaction.abort();
+            try (Transaction transaction = Transaction.openRoot()) {
+                int extracted = storage.extract(resource, maxAmount, transaction);
+                if (extracted > 0) {
+                    transaction.commit();
+                    return onExtract(resource.toStack(extracted));
+                }
+            }
         }
         return ItemStack.EMPTY;
     }
 
     @Override
     public ItemStack extractAnyMax() {
-        try (Transaction transaction = Transaction.openOuter()) {
-            for (StorageView<ItemVariant> view : storage.nonEmptyViews()) {
-                ItemVariant variant = view.getResource();
-                int maxAmount = variant.getComponentMap().getOrDefault(DataComponents.MAX_STACK_SIZE, 1);
-                long extract = storage.extract(variant, maxAmount, transaction);
-                if (extract == 0) {
-                    continue;
-                }
-                transaction.commit();
-                return directCopy(((ItemVariantImpl) variant).getCachedStack(), (int) extract);
+        for (int i = 0, size = storage.size(); i < size; i++) {
+            ItemResource resource = storage.getResource(i);
+            if (resource.isEmpty() || storage.getAmountAsInt(i) <= 0) {
+                continue;
             }
-            transaction.abort();
+            int maxAmount = resource.toStack().getMaxStackSize();
+            return extractResource(resource, maxAmount);
         }
         return ItemStack.EMPTY;
     }
 
     @Override
     public ItemStack extractMax(Predicate<ItemStack> predicate) {
-        try (Transaction transaction = Transaction.openOuter()) {
-            for (StorageView<ItemVariant> view : storage.nonEmptyViews()) {
-                ItemVariant variant = view.getResource();
-                ItemStack stack = ((ItemVariantImpl) variant).getCachedStack();
-                if (predicate.test(stack)) {
-                    int maxAmount = variant.getComponentMap().getOrDefault(DataComponents.MAX_STACK_SIZE, 1);
-                    long extract = storage.extract(variant, maxAmount, transaction);
-                    if (extract == 0) {
-                        continue;
-                    }
-                    transaction.commit();
-                    return directCopy(stack, (int) extract);
-                }
+        for (int i = 0, size = storage.size(); i < size; i++) {
+            ItemResource resource = storage.getResource(i);
+            int amount = storage.getAmountAsInt(i);
+            if (resource.isEmpty() || amount <= 0 || !predicate.test(resource.toStack(amount))) {
+                continue;
             }
-            transaction.abort();
+            return extractResource(resource, resource.toStack().getMaxStackSize());
         }
         return ItemStack.EMPTY;
-    }
-
-    @Override
-    @SuppressWarnings("UnstableApiUsage")
-    public int extractAll(Predicate<ItemStack> predicate, int maxAmount) {
-        if (maxAmount == 0) {
-            return 0;
-        }
-        long remaining = maxAmount;
-        try (Transaction transaction = Transaction.openOuter()) {
-            for (StorageView<ItemVariant> view : storage.nonEmptyViews()) {
-                ItemVariant variant = view.getResource();
-                if (predicate.test(((ItemVariantImpl) variant).getCachedStack())) {
-                    long extract = view.extract(variant, remaining, transaction);
-                    if (extract == remaining) {
-                        transaction.commit();
-                        return maxAmount;
-                    }
-                    remaining -= extract;
-                }
-            }
-            transaction.commit();
-        }
-        return (int) (maxAmount - remaining);
-    }
-
-    @Override
-    public int forceInsert(ItemStack stack) {
-        return insert(stack);
-    }
-
-    @Override
-    public int forceInsert(ItemStack stack, int maxAmount) {
-        return insert(stack, maxAmount);
-    }
-
-    @Override
-    public boolean forcePreciseInsert(ItemStack stack) {
-        return preciseInsert(stack);
-    }
-
-    @Override
-    public boolean forcePreciseInsert(ItemStack stack, int maxAmount) {
-        return preciseInsert(stack, maxAmount);
-    }
-
-    @Override
-    public int getMaxStackSize() {
-        return capacity;
-    }
-
-    protected abstract S getSlotView(int slot);
-
-    @Override
-    public ItemStack getItem(int slot) {
-        if (slot >= getContainerSize()) {
-            return ItemStack.EMPTY;
-        }
-        StorageView<ItemVariant> view = getSlotView(slot);
-        if (view == null) {
-            return ItemStack.EMPTY;
-        }
-        ItemVariant variant = view.getResource();
-        return new ItemStack(variant.getRegistryEntry(), (int) view.getAmount(), variant.getComponents());
-    }
-
-    protected void init() {
-        int max = 0;
-        for (StorageView<ItemVariant> view : storage) {
-            long capacity = view.getCapacity();
-            if (max > capacity) {
-                max = (int) capacity;
-            }
-        }
-        capacity = max;
-    }
-
-    protected abstract void insert(S view, ItemVariant variant, int amount, Transaction transaction);
-
-    @Override
-    public int insert(ItemStack stack) {
-        int maxAmount = stack.getCount();
-        if (maxAmount == 0) {
-            return 0;
-        }
-        return insert(stack, maxAmount);
-    }
-
-    @Override
-    public int insert(ItemStack stack, int maxAmount) {
-        try (Transaction transaction = Transaction.openOuter()) {
-            long insert = storage.insert(
-                ItemVariant.of(stack.getItem(), stack.getComponentsPatch()),
-                maxAmount,
-                transaction
-            );
-            transaction.commit();
-            return (int) insert;
-        }
-    }
-
-    @Override
-    public List<ItemStack> insert(List<ItemStack> stacks) {
-        int listSize = stacks.size();
-        if (listSize == 0) {
-            return stacks;
-        }
-        if (listSize == 1) {
-            ItemStack stack = stacks.getFirst();
-            int count = stack.getCount();
-            int insert = insert(stacks.getFirst(), count);
-            if (count == insert) {
-                return List.of();
-            }
-            if (insert == 0) {
-                return stacks;
-            }
-            return List.of(directCopy(stack, count - insert));
-        }
-        Object2IntLinkedOpenCustomHashMap<ItemStack> map = new Object2IntLinkedOpenCustomHashMap<>(
-            ITEM_STACK_HASH_STRATEGY);
-        for (ItemStack stack : stacks) {
-            map.merge(stack, stack.getCount(), Integer::sum);
-        }
-        Object2IntSortedMap.FastSortedEntrySet<ItemStack> entries = map.object2IntEntrySet();
-        if (entries.size() == 1) {
-            Object2IntMap.Entry<ItemStack> entry = entries.first();
-            ItemStack stack = entry.getKey();
-            int count = entry.getIntValue();
-            int insert = insert(stack, count);
-            if (count == insert) {
-                return List.of();
-            }
-            if (insert == 0) {
-                return stacks;
-            }
-            return List.of(directCopy(stack, count - insert));
-        }
-        try (Transaction transaction = Transaction.openOuter()) {
-            boolean dirty = false;
-            ObjectIterator<Object2IntMap.Entry<ItemStack>> iterator = entries.fastIterator();
-            do {
-                Object2IntMap.Entry<ItemStack> entry = iterator.next();
-                ItemStack stack = entry.getKey();
-                int count = entry.getIntValue();
-                long insert = storage.insert(
-                    ItemVariant.of(stack.getItem(), stack.getComponentsPatch()),
-                    count,
-                    transaction
-                );
-                if (insert == count) {
-                    iterator.remove();
-                    if (entries.isEmpty()) {
-                        transaction.commit();
-                        return List.of();
-                    }
-                    dirty = true;
-                } else if (insert != 0) {
-                    entry.setValue(count - (int) insert);
-                    dirty = true;
-                }
-            } while (iterator.hasNext());
-            if (dirty) {
-                List<ItemStack> result = new ArrayList<>();
-                for (Object2IntMap.Entry<ItemStack> entry : entries) {
-                    ItemStack stack = entry.getKey();
-                    int count = entry.getIntValue();
-                    if (stack.getCount() == count) {
-                        result.add(stack);
-                    } else {
-                        result.add(directCopy(stack, count));
-                    }
-                }
-                transaction.commit();
-                return result;
-            } else {
-                return stacks;
-            }
-        }
-    }
-
-    @Override
-    public int insert(ItemStack stack, int maxAmount, int start, int end) {
-        return insert(stack, maxAmount);
-    }
-
-    @Override
-    public List<ItemStack> insert(List<ItemStack> stacks, int start, int end) {
-        return insert(stacks);
-    }
-
-    @Override
-    public int insertExist(ItemStack stack) {
-        int maxAmount = stack.getCount();
-        if (maxAmount == 0) {
-            return 0;
-        }
-        return insertExist(stack, maxAmount);
-    }
-
-    @Override
-    public int insertExist(ItemStack stack, int maxAmount) {
-        try (Transaction transaction = Transaction.openOuter()) {
-            long insert = storage.insert(
-                ItemVariant.of(stack.getItem(), stack.getComponentsPatch()),
-                maxAmount,
-                transaction
-            );
-            transaction.commit();
-            return (int) insert;
-        }
-    }
-
-    @Override
-    public boolean isEmpty() {
-        for (StorageView<ItemVariant> view : storage.nonEmptyViews()) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    @NotNull
-    public java.util.Iterator<ItemStack> iterator() {
-        return storage.supportsExtraction() ? new Iterator(storage) : Collections.emptyIterator();
     }
 
     @Override
@@ -744,41 +438,31 @@ public abstract class InventoryWrapper<T extends Storage<ItemVariant>, S extends
         if (stack.isEmpty()) {
             return true;
         }
-        try (Transaction transaction = Transaction.openOuter()) {
-            int amount = stack.getCount();
-            long extract = storage.extract(
-                ItemVariant.of(stack.getItem(), stack.getComponentsPatch()),
-                amount,
-                transaction
-            );
-            if (extract < amount) {
-                transaction.abort();
+        ItemResource resource = ItemResource.of(stack);
+        try (Transaction transaction = Transaction.openRoot()) {
+            if (storage.extract(resource, stack.getCount(), transaction) != stack.getCount()) {
                 return false;
-            } else {
-                transaction.commit();
-                return true;
             }
+            transaction.commit();
+            return true;
         }
     }
 
     @Override
-    @SuppressWarnings("UnstableApiUsage")
     public ItemStack preciseExtract(Predicate<ItemStack> predicate, int maxAmount) {
-        if (maxAmount == 0) {
+        if (maxAmount <= 0) {
             return ItemStack.EMPTY;
         }
-        for (StorageView<ItemVariant> view : storage.nonEmptyViews()) {
-            ItemVariant variant = view.getResource();
-            ItemStack stack = ((ItemVariantImpl) variant).getCachedStack();
-            if (predicate.test(stack)) {
-                try (Transaction transaction = Transaction.openOuter()) {
-                    long extract = storage.extract(variant, maxAmount, transaction);
-                    if (extract != maxAmount) {
-                        transaction.abort();
-                        continue;
-                    }
+        for (int i = 0, size = storage.size(); i < size; i++) {
+            ItemResource resource = storage.getResource(i);
+            int amount = storage.getAmountAsInt(i);
+            if (resource.isEmpty() || amount <= 0 || !predicate.test(resource.toStack(amount))) {
+                continue;
+            }
+            try (Transaction transaction = Transaction.openRoot()) {
+                if (storage.extract(resource, maxAmount, transaction) == maxAmount) {
                     transaction.commit();
-                    return directCopy(stack, maxAmount);
+                    return onExtract(resource.toStack(maxAmount));
                 }
             }
         }
@@ -786,1208 +470,255 @@ public abstract class InventoryWrapper<T extends Storage<ItemVariant>, S extends
     }
 
     @Override
-    public boolean preciseInsert(ItemStack stack) {
-        int maxAmount = stack.getCount();
-        if (maxAmount == 0) {
-            return true;
+    public int insert(ItemStack stack, int maxAmount) {
+        if (stack.isEmpty() || maxAmount <= 0) {
+            return 0;
         }
-        return preciseInsert(stack, maxAmount);
+        ItemResource resource = ItemResource.of(stack);
+        try (Transaction transaction = Transaction.openRoot()) {
+            int inserted = storage.insert(resource, maxAmount, transaction);
+            transaction.commit();
+            return inserted;
+        }
+    }
+
+    @Override
+    public List<ItemStack> insert(List<ItemStack> stacks) {
+        List<ItemStack> leftovers = new ArrayList<>();
+        boolean changed = false;
+        try (Transaction transaction = Transaction.openRoot()) {
+            for (ItemStack stack : stacks) {
+                if (stack.isEmpty()) {
+                    continue;
+                }
+                ItemResource resource = ItemResource.of(stack);
+                int requested = stack.getCount();
+                int inserted = storage.insert(resource, requested, transaction);
+                changed |= inserted > 0;
+                if (inserted < requested) {
+                    leftovers.add(resource.toStack(requested - inserted));
+                }
+            }
+            if (changed) {
+                transaction.commit();
+            }
+        }
+        if (!changed) {
+            return stacks;
+        }
+        return leftovers;
+    }
+
+    @Override
+    public int insert(ItemStack stack, int maxAmount, int start, int end) {
+        if (stack.isEmpty() || maxAmount <= 0) {
+            return 0;
+        }
+        ItemResource resource = ItemResource.of(stack);
+        int remaining = maxAmount;
+        try (Transaction transaction = Transaction.openRoot()) {
+            for (int i = Math.max(0, start), last = Math.min(end, storage.size() - 1); i <= last && remaining > 0; i++) {
+                remaining -= storage.insert(i, resource, remaining, transaction);
+            }
+            transaction.commit();
+        }
+        return maxAmount - remaining;
+    }
+
+    @Override
+    public List<ItemStack> insert(List<ItemStack> stacks, int start, int end) {
+        List<ItemStack> leftovers = new ArrayList<>();
+        boolean changed = false;
+        int last = Math.min(end, storage.size() - 1);
+        try (Transaction transaction = Transaction.openRoot()) {
+            for (ItemStack stack : stacks) {
+                if (stack.isEmpty()) {
+                    continue;
+                }
+                ItemResource resource = ItemResource.of(stack);
+                int remaining = stack.getCount();
+                for (int slot = Math.max(0, start); slot <= last && remaining > 0; slot++) {
+                    int inserted = storage.insert(slot, resource, remaining, transaction);
+                    remaining -= inserted;
+                    changed |= inserted > 0;
+                }
+                if (remaining > 0) {
+                    leftovers.add(resource.toStack(remaining));
+                }
+            }
+            if (changed) {
+                transaction.commit();
+            }
+        }
+        if (!changed) {
+            return stacks;
+        }
+        return leftovers;
+    }
+
+    @Override
+    public int insertExist(ItemStack stack, int maxAmount) {
+        if (stack.isEmpty() || maxAmount <= 0) {
+            return 0;
+        }
+        ItemResource resource = ItemResource.of(stack);
+        try (Transaction transaction = Transaction.openRoot()) {
+            int inserted = storage.insert(resource, maxAmount, transaction);
+            transaction.commit();
+            return inserted;
+        }
     }
 
     @Override
     public boolean preciseInsert(ItemStack stack, int maxAmount) {
-        try (Transaction transaction = Transaction.openOuter()) {
-            long insert = storage.insert(
-                ItemVariant.of(stack.getItem(), stack.getComponentsPatch()),
-                maxAmount,
-                transaction
-            );
-            if (insert < maxAmount) {
-                transaction.abort();
+        if (stack.isEmpty() || maxAmount <= 0) {
+            return maxAmount == 0;
+        }
+        ItemResource resource = ItemResource.of(stack);
+        try (Transaction transaction = Transaction.openRoot()) {
+            if (storage.insert(resource, maxAmount, transaction) != maxAmount) {
                 return false;
-            } else {
-                transaction.commit();
-                return true;
             }
+            transaction.commit();
+            return true;
         }
     }
 
     @Override
     public boolean preciseInsert(List<ItemStack> stacks) {
-        int listSize = stacks.size();
-        if (listSize == 0) {
-            return true;
-        }
-        if (listSize == 1) {
-            return preciseInsert(stacks.getFirst());
-        }
-        Object2IntLinkedOpenCustomHashMap<ItemStack> map = new Object2IntLinkedOpenCustomHashMap<>(
-            ITEM_STACK_HASH_STRATEGY);
-        for (ItemStack stack : stacks) {
-            map.merge(stack, stack.getCount(), Integer::sum);
-        }
-        Object2IntSortedMap.FastSortedEntrySet<ItemStack> entries = map.object2IntEntrySet();
-        if (entries.size() == 1) {
-            Object2IntMap.Entry<ItemStack> entry = entries.first();
-            return preciseInsert(entry.getKey(), entry.getIntValue());
-        }
-        try (Transaction transaction = Transaction.openOuter()) {
-            ObjectIterator<Object2IntMap.Entry<ItemStack>> iterator = entries.fastIterator();
-            do {
-                Object2IntMap.Entry<ItemStack> entry = iterator.next();
-                ItemStack stack = entry.getKey();
-                int count = entry.getIntValue();
-                long insert = storage.insert(
-                    ItemVariant.of(stack.getItem(), stack.getComponentsPatch()),
-                    count,
-                    transaction
-                );
-                if (insert < count) {
-                    transaction.abort();
+        try (Transaction transaction = Transaction.openRoot()) {
+            for (ItemStack stack : stacks) {
+                if (stack.isEmpty()) {
+                    continue;
+                }
+                ItemResource resource = ItemResource.of(stack);
+                if (storage.insert(resource, stack.getCount(), transaction) != stack.getCount()) {
                     return false;
                 }
-            } while (iterator.hasNext());
+            }
             transaction.commit();
             return true;
         }
     }
 
     @Override
-    public ItemStack removeItemNoUpdate(int slot) {
-        if (slot >= getContainerSize()) {
-            return ItemStack.EMPTY;
-        }
-        StorageView<ItemVariant> view = getSlotView(slot);
-        if (view == null) {
-            return ItemStack.EMPTY;
-        }
-        ItemVariant variant = view.getResource();
-        long amount = view.getAmount();
-        if (variant.isBlank() || amount == 0) {
-            return ItemStack.EMPTY;
-        }
-        try (Transaction transaction = Transaction.openOuter()) {
-            amount = view.extract(variant, amount, transaction);
-            transaction.commit();
-        }
-        return new ItemStack(variant.getRegistryEntry(), (int) amount, variant.getComponents());
-    }
-
-    @Override
-    public ItemStack removeItem(int slot, int amount) {
-        if (slot >= getContainerSize()) {
-            return ItemStack.EMPTY;
-        }
-        StorageView<ItemVariant> view = getSlotView(slot);
-        if (view == null) {
-            return ItemStack.EMPTY;
-        }
-        ItemVariant variant = view.getResource();
-        if (variant.isBlank() || view.getAmount() == 0) {
-            return ItemStack.EMPTY;
-        }
-        try (Transaction transaction = Transaction.openOuter()) {
-            amount = (int) view.extract(variant, amount, transaction);
-            transaction.commit();
-        }
-        return new ItemStack(variant.getRegistryEntry(), amount, variant.getComponents());
-    }
-
-    @Override
-    public void setItem(int slot, ItemStack stack) {
-        if (slot >= getContainerSize()) {
-            return;
-        }
-        S view = getSlotView(slot);
-        if (view == null) {
-            return;
-        }
-        ItemVariant variant = view.getResource();
-        try (Transaction transaction = Transaction.openOuter()) {
-            if (variant.isBlank() || view.getAmount() == 0) {
-                if (stack.isEmpty()) {
-                    return;
-                }
-                insert(
-                    view,
-                    ItemVariant.of(stack.getItem(), stack.getComponentsPatch()),
-                    stack.getCount(),
-                    transaction
-                );
-            } else if (variant.matches(stack)) {
-                int amount = stack.getCount();
-                int targetCount = (int) view.getAmount();
-                if (amount == targetCount) {
-                    return;
-                }
-                int change = targetCount - amount;
-                if (amount < targetCount) {
-                    insert(view, variant, change, transaction);
-                } else {
-                    view.extract(variant, change, transaction);
-                }
-            } else {
-                view.extract(variant, view.getAmount(), transaction);
-                insert(
-                    view,
-                    ItemVariant.of(stack.getItem(), stack.getComponentsPatch()),
-                    stack.getCount(),
-                    transaction
-                );
-            }
-            transaction.commit();
-        }
-    }
-
-    @Override
-    @SuppressWarnings("UnstableApiUsage")
     public boolean update(Predicate<ItemStack> predicate, Function<ItemStack, ItemStack> update) {
-        for (StorageView<ItemVariant> view : storage.nonEmptyViews()) {
-            ItemVariant variant = view.getResource();
-            ItemStack stack = ((ItemVariantImpl) variant).getCachedStack();
-            if (predicate.test(stack)) {
-                try (Transaction transaction = Transaction.openOuter()) {
-                    long amount = view.getAmount();
-                    ItemStack replace = update.apply(new ItemStack(
-                        variant.getRegistryEntry(),
-                        (int) amount,
-                        variant.getComponents()
-                    ));
-                    if (ItemStack.isSameItemSameComponents(stack, replace)) {
-                        int count = replace.getCount();
-                        if (count == amount) {
-                            return true;
-                        }
-                        long change;
-                        if (count < amount) {
-                            change = view.extract(variant, amount - count, transaction);
-                        } else {
-                            change = storage.insert(variant, count - amount, transaction);
-                        }
-                        if (change != 0) {
-                            transaction.commit();
-                            return true;
-                        }
-                    } else {
-                        long extract = view.extract(variant, amount, transaction);
-                        if (extract != 0) {
-                            if (replace.isEmpty()) {
-                                transaction.commit();
-                                return true;
-                            }
-                            long insert = storage.insert(
-                                ItemVariant.of(replace.getItem(), replace.getComponentsPatch()),
-                                replace.getCount(),
-                                transaction
-                            );
-                            if (insert != 0) {
-                                transaction.commit();
-                                return true;
-                            }
-                        }
-                        transaction.abort();
-                        return false;
-                    }
+        for (int i = 0, size = storage.size(); i < size; i++) {
+            ItemResource resource = storage.getResource(i);
+            int amount = storage.getAmountAsInt(i);
+            if (resource.isEmpty() || amount <= 0) {
+                continue;
+            }
+            ItemStack current = resource.toStack(amount);
+            if (!predicate.test(current)) {
+                continue;
+            }
+            ItemStack replacement = Objects.requireNonNull(update.apply(current.copy()));
+            try (Transaction transaction = Transaction.openRoot()) {
+                if (replaceSlot(i, replacement, transaction)) {
+                    transaction.commit();
+                    return true;
                 }
             }
+            return false;
         }
         return false;
     }
 
     @Override
+    public int create$size() {
+        return storage.size();
+    }
+
+    @Override
+    public ItemStack create$getStack(int slot) {
+        return getItem(slot);
+    }
+
+    @Override
+    public void create$setStack(int slot, ItemStack stack) {
+        setItem(slot, stack);
+    }
+
+    @Override
+    public int create$getMaxCount(ItemStack stack) {
+        return stack.isEmpty() ? getMaxStackSize() : maxCapacity(ItemResource.of(stack));
+    }
+
+    @Override
+    public boolean create$isValid(int slot, ItemStack stack) {
+        return canPlaceItem(slot, stack);
+    }
+
+    @Override
+    public void create$markDirty() {
+        // All write paths in this adapter are committed directly through ResourceHandler transactions.
+    }
+
+    @Override
+    public Iterator<ItemStack> iterator() {
+        return IntStream.range(0, storage.size()).mapToObj(this::getItem).iterator();
+    }
+
+    @Override
     public Stream<ItemStack> stream() {
-        return storage.supportsExtraction() ? ItemInventory.super.stream() : Stream.empty();
+        return IntStream.range(0, storage.size()).mapToObj(this::getItem);
     }
 
-    public static class Filter implements SidedItemInventory {
-        private final int[] slots;
-        private final boolean canInsert;
-        private final boolean canExtract;
-        private final InventoryWrapper<?, ?> inventory;
-
-        public Filter(InventoryWrapper<?, ?> inventory) {
-            this.inventory = inventory;
-            this.slots = SlotRangeCache.get(inventory.getContainerSize());
-            this.canInsert = inventory.storage.supportsInsertion();
-            this.canExtract = inventory.storage.supportsExtraction();
-        }
-
-        @Override
-        public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction dir) {
-            return canExtract;
-        }
-
-        @Override
-        public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction dir) {
-            return canInsert;
-        }
-
-        @Override
-        public void clearContent() {
-            if (!canExtract) {
-                return;
-            }
-            inventory.clearContent();
-        }
-
-        @Override
-        public int count(ItemStack stack, Direction side) {
-            return count(stack);
-        }
-
-        @Override
-        public int count(ItemStack stack) {
-            if (!canExtract) {
-                return 0;
-            }
-            return inventory.count(stack);
-        }
-
-        @Override
-        public int count(ItemStack stack, int maxAmount, Direction side) {
-            return count(stack, maxAmount);
-        }
-
-        @Override
-        public int count(ItemStack stack, int maxAmount) {
-            if (!canExtract) {
-                return 0;
-            }
-            return inventory.count(stack, maxAmount);
-        }
-
-        @Override
-        public ItemStack count(Predicate<ItemStack> predicate, Direction side) {
-            return count(predicate);
-        }
-
-        @Override
-        public ItemStack count(Predicate<ItemStack> predicate) {
-            if (!canExtract) {
-                return ItemStack.EMPTY;
-            }
-            return inventory.count(predicate);
-        }
-
-        @Override
-        public ItemStack count(Predicate<ItemStack> predicate, int maxAmount, Direction side) {
-            return count(predicate, maxAmount);
-        }
-
-        @Override
-        public ItemStack count(Predicate<ItemStack> predicate, int maxAmount) {
-            if (!canExtract) {
-                return ItemStack.EMPTY;
-            }
-            return inventory.count(predicate, maxAmount);
-        }
-
-        @Override
-        public ItemStack preciseCount(Predicate<ItemStack> predicate, int maxAmount, Direction side) {
-            return preciseCount(predicate, maxAmount);
-        }
-
-        @Override
-        public ItemStack preciseCount(Predicate<ItemStack> predicate, int maxAmount) {
-            if (!canExtract) {
-                return ItemStack.EMPTY;
-            }
-            return inventory.preciseCount(predicate, maxAmount);
-        }
-
-        @Override
-        public int countAll(Predicate<ItemStack> predicate, int maxAmount, Direction side) {
-            return countAll(predicate, maxAmount);
-        }
-
-        @Override
-        public int countAll(Predicate<ItemStack> predicate, int maxAmount) {
-            if (!canExtract) {
-                return 0;
-            }
-            return inventory.countAll(predicate, maxAmount);
-        }
-
-        @Override
-        public ItemStack countAny(Direction side) {
-            return countAny();
-        }
-
-        @Override
-        public ItemStack countAny() {
-            if (!canExtract) {
-                return ItemStack.EMPTY;
-            }
-            return inventory.countAny();
-        }
-
-        @Override
-        public ItemStack countAny(int maxAmount, Direction side) {
-            return countAny(maxAmount);
-        }
-
-        @Override
-        public ItemStack countAny(int maxAmount) {
-            if (!canExtract) {
-                return ItemStack.EMPTY;
-            }
-            return inventory.countAny(maxAmount);
-        }
-
-        @Override
-        public int countSpace(ItemStack stack, Direction side) {
-            return countSpace(stack);
-        }
-
-        @Override
-        public int countSpace(ItemStack stack) {
-            if (!canInsert) {
-                return 0;
-            }
-            return inventory.countSpace(stack);
-        }
-
-        @Override
-        public int countSpace(ItemStack stack, int maxAmount, Direction side) {
-            return countSpace(stack, maxAmount);
-        }
-
-        @Override
-        public int countSpace(ItemStack stack, int maxAmount) {
-            if (!canInsert) {
-                return 0;
-            }
-            return inventory.countSpace(stack, maxAmount);
-        }
-
-        @Override
-        public boolean countSpace(List<ItemStack> stacks, Direction side) {
-            return countSpace(stacks);
-        }
-
-        @Override
-        public boolean countSpace(List<ItemStack> stacks) {
-            if (!canInsert) {
-                return false;
-            }
-            return inventory.countSpace(stacks);
-        }
-
-        @Override
-        public int extract(ItemStack stack, Direction side) {
-            return extract(stack);
-        }
-
-        @Override
-        public int extract(ItemStack stack) {
-            if (!canExtract) {
-                return 0;
-            }
-            return inventory.extract(stack);
-        }
-
-        @Override
-        public int extract(ItemStack stack, int maxAmount, Direction side) {
-            return extract(stack, maxAmount);
-        }
-
-        @Override
-        public int extract(ItemStack stack, int maxAmount) {
-            if (!canExtract) {
-                return 0;
-            }
-            return inventory.extract(stack, maxAmount);
-        }
-
-        @Override
-        public ItemStack extract(Predicate<ItemStack> predicate, Direction side) {
-            return extract(predicate);
-        }
-
-        @Override
-        public ItemStack extract(Predicate<ItemStack> predicate) {
-            if (!canExtract) {
-                return ItemStack.EMPTY;
-            }
-            return inventory.extract(predicate);
-        }
-
-        @Override
-        public ItemStack extract(Predicate<ItemStack> predicate, int maxAmount, Direction side) {
-            return extract(predicate, maxAmount);
-        }
-
-        @Override
-        public ItemStack extract(Predicate<ItemStack> predicate, int maxAmount) {
-            if (!canExtract) {
-                return ItemStack.EMPTY;
-            }
-            return inventory.extract(predicate, maxAmount);
-        }
-
-        @Override
-        public List<ItemStack> extract(List<ItemStack> stacks, Direction side) {
-            return extract(stacks);
-        }
-
-        @Override
-        public List<ItemStack> extract(List<ItemStack> stacks) {
-            if (!canExtract) {
-                return stacks;
-            }
-            return inventory.extract(stacks);
-        }
-
-        @Override
-        public int extractAll(Predicate<ItemStack> predicate, int maxAmount, Direction side) {
-            return extractAll(predicate, maxAmount);
-        }
-
-        @Override
-        public int extractAll(Predicate<ItemStack> predicate, int maxAmount) {
-            if (!canExtract) {
-                return 0;
-            }
-            return inventory.extractAll(predicate, maxAmount);
-        }
-
-        @Override
-        public ItemStack extractAny(Direction side) {
-            return extractAny();
-        }
-
-        @Override
-        public ItemStack extractAny() {
-            if (!canExtract) {
-                return ItemStack.EMPTY;
-            }
-            return inventory.extractAny();
-        }
-
-        @Override
-        public ItemStack extractAny(int maxAmount, Direction side) {
-            return extractAny(maxAmount);
-        }
-
-        @Override
-        public ItemStack extractAny(int maxAmount) {
-            if (!canExtract) {
-                return ItemStack.EMPTY;
-            }
-            return inventory.extractAny(maxAmount);
-        }
-
-        @Override
-        public ItemStack extractAnyMax(Direction side) {
-            return extractAnyMax();
-        }
-
-        @Override
-        public ItemStack extractAnyMax() {
-            if (!canExtract) {
-                return ItemStack.EMPTY;
-            }
-            return inventory.extractAnyMax();
-        }
-
-        @Override
-        public ItemStack extractMax(Predicate<ItemStack> predicate, Direction side) {
-            return extractMax(predicate);
-        }
-
-        @Override
-        public ItemStack extractMax(Predicate<ItemStack> predicate) {
-            if (!canExtract) {
-                return ItemStack.EMPTY;
-            }
-            return inventory.extractMax(predicate);
-        }
-
-        @Override
-        public int forceInsert(ItemStack stack) {
-            return inventory.forceInsert(stack);
-        }
-
-        @Override
-        public int forceInsert(ItemStack stack, int maxAmount) {
-            return inventory.forceInsert(stack, maxAmount);
-        }
-
-        @Override
-        public boolean forcePreciseInsert(ItemStack stack) {
-            return inventory.forcePreciseInsert(stack);
-        }
-
-        @Override
-        public boolean forcePreciseInsert(ItemStack stack, int maxAmount) {
-            return inventory.forcePreciseInsert(stack, maxAmount);
-        }
-
-        @Override
-        public int[] getSlotsForFace(Direction side) {
-            return slots;
-        }
-
-        @Override
-        public int getMaxStackSize() {
-            return inventory.getMaxStackSize();
-        }
-
-        @Override
-        public ItemStack getItem(int slot) {
-            return inventory.getItem(slot);
-        }
-
-        @Override
-        public int insert(ItemStack stack, Direction side) {
-            return insert(stack);
-        }
-
-        @Override
-        public int insert(ItemStack stack) {
-            if (!canInsert) {
-                return 0;
-            }
-            return inventory.insert(stack);
-        }
-
-        @Override
-        public int insert(ItemStack stack, int maxAmount, Direction side) {
-            return insert(stack, maxAmount);
-        }
-
-        @Override
-        public int insert(ItemStack stack, int maxAmount) {
-            if (!canInsert) {
-                return 0;
-            }
-            return inventory.insert(stack, maxAmount);
-        }
-
-        @Override
-        public int insert(ItemStack stack, int maxAmount, int start, int end, Direction side) {
-            return insert(stack, maxAmount);
-        }
-
-        @Override
-        public int insert(ItemStack stack, int maxAmount, int start, int end) {
-            if (!canInsert) {
-                return 0;
-            }
-            return inventory.insert(stack, maxAmount, start, end);
-        }
-
-        @Override
-        public List<ItemStack> insert(List<ItemStack> stacks, Direction side) {
-            return insert(stacks);
-        }
-
-        @Override
-        public List<ItemStack> insert(List<ItemStack> stacks) {
-            if (!canInsert) {
-                return stacks;
-            }
-            return inventory.insert(stacks);
-        }
-
-        @Override
-        public List<ItemStack> insert(List<ItemStack> stacks, int start, int end, Direction side) {
-            return insert(stacks, start, end);
-        }
-
-        @Override
-        public List<ItemStack> insert(List<ItemStack> stacks, int start, int end) {
-            if (!canInsert) {
-                return stacks;
-            }
-            return inventory.insert(stacks, start, end);
-        }
-
-        @Override
-        public int insertExist(ItemStack stack, Direction side) {
-            return insertExist(stack);
-        }
-
-        @Override
-        public int insertExist(ItemStack stack) {
-            if (!canInsert) {
-                return 0;
-            }
-            return inventory.insertExist(stack);
-        }
-
-        @Override
-        public int insertExist(ItemStack stack, int maxAmount, Direction side) {
-            if (!canInsert) {
-                return 0;
-            }
-            return insertExist(stack, maxAmount);
-        }
-
-        @Override
-        public int insertExist(ItemStack stack, int maxAmount) {
-            return inventory.insertExist(stack, maxAmount);
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return inventory.isEmpty();
-        }
-
-        @Override
-        public @NotNull java.util.Iterator<ItemStack> iterator() {
-            return inventory.iterator();
-        }
-
-        @Override
-        public @NotNull java.util.Iterator<ItemStack> iterator(Direction side) {
-            return inventory.iterator();
-        }
-
-        @Override
-        public boolean preciseExtract(ItemStack stack, Direction side) {
-            return preciseExtract(stack);
-        }
-
-        @Override
-        public boolean preciseExtract(ItemStack stack) {
-            if (!canExtract) {
-                return stack.isEmpty();
-            }
-            return inventory.preciseExtract(stack);
-        }
-
-        @Override
-        public ItemStack preciseExtract(Predicate<ItemStack> predicate, int maxAmount, Direction side) {
-            return preciseExtract(predicate, maxAmount);
-        }
-
-        @Override
-        public ItemStack preciseExtract(Predicate<ItemStack> predicate, int maxAmount) {
-            if (!canExtract) {
-                return ItemStack.EMPTY;
-            }
-            return inventory.preciseExtract(predicate, maxAmount);
-        }
-
-        @Override
-        public boolean preciseInsert(ItemStack stack, Direction side) {
-            return preciseInsert(stack);
-        }
-
-        @Override
-        public boolean preciseInsert(ItemStack stack) {
-            if (!canInsert) {
-                return stack.isEmpty();
-            }
-            return inventory.preciseInsert(stack);
-        }
-
-        @Override
-        public boolean preciseInsert(ItemStack stack, int maxAmount, Direction side) {
-            return preciseInsert(stack, maxAmount);
-        }
-
-        @Override
-        public boolean preciseInsert(ItemStack stack, int maxAmount) {
-            if (!canInsert) {
-                return stack.isEmpty();
-            }
-            return inventory.preciseInsert(stack, maxAmount);
-        }
-
-        @Override
-        public boolean preciseInsert(List<ItemStack> stacks, Direction side) {
-            return preciseInsert(stacks);
-        }
-
-        @Override
-        public boolean preciseInsert(List<ItemStack> stacks) {
-            if (!canInsert) {
-                return false;
-            }
-            return inventory.preciseInsert(stacks);
-        }
-
-        @Override
-        public ItemStack removeItemNoUpdate(int slot) {
-            if (!canExtract) {
-                return ItemStack.EMPTY;
-            }
-            return inventory.removeItemNoUpdate(slot);
-        }
-
-        @Override
-        public ItemStack removeItem(int slot, int amount) {
-            if (!canExtract) {
-                return ItemStack.EMPTY;
-            }
-            return inventory.removeItem(slot, amount);
-        }
-
-        @Override
-        public void setItem(int slot, ItemStack stack) {
-            inventory.setItem(slot, stack);
-        }
-
-        @Override
-        public int getContainerSize() {
-            return inventory.getContainerSize();
-        }
-
-        @Override
-        public Stream<ItemStack> stream() {
-            return inventory.stream();
-        }
-
-        @Override
-        public Stream<ItemStack> stream(Direction side) {
-            return inventory.stream();
-        }
-    }
-
-    protected static class Direct extends InventoryWrapper<Storage<ItemVariant>, StorageView<ItemVariant>> {
-        private int size;
-
-        public Direct(Storage<ItemVariant> storage) {
-            super(storage);
-        }
-
-        @Override
-        protected StorageView<ItemVariant> getSlotView(int slot) {
-            int current = 0;
-            for (StorageView<ItemVariant> view : storage) {
-                if (current == slot) {
-                    return view;
-                }
-                current++;
-            }
-            return null;
-        }
-
-        @Override
-        protected void init() {
-            int count = 0;
-            int max = 0;
-            for (StorageView<ItemVariant> view : storage) {
-                long capacity = view.getCapacity();
-                if (max < capacity) {
-                    max = (int) capacity;
-                }
-                count++;
-            }
-            size = count;
-            capacity = max;
-        }
-
-        @Override
-        protected void insert(StorageView<ItemVariant> view, ItemVariant variant, int amount, Transaction transaction) {
-            storage.insert(variant, amount, transaction);
-        }
-
-        @Override
-        public int getContainerSize() {
-            return size;
-        }
-    }
-
-    protected static class Slotted extends InventoryWrapper<SlottedStorage<ItemVariant>, SingleSlotStorage<ItemVariant>> {
-        public Slotted(SlottedStorage<ItemVariant> storage) {
-            super(storage);
-        }
-
-        @Override
-        protected SingleSlotStorage<ItemVariant> getSlotView(int slot) {
-            return storage.getSlot(slot);
-        }
-
-        @Override
-        protected void insert(
-            SingleSlotStorage<ItemVariant> view,
-            ItemVariant variant,
-            int amount,
-            Transaction transaction
-        ) {
-            view.insert(variant, amount, transaction);
-        }
-
-        @Override
-        public int insertExist(ItemStack stack) {
-            if (stack.isEmpty()) {
-                return 0;
-            }
-            try (Transaction transaction = Transaction.openOuter()) {
-                List<SingleSlotStorage<ItemVariant>> emptys = new ArrayList<>();
-                ItemVariant variant = ItemVariant.of(stack.getItem(), stack.getComponentsPatch());
-                int maxAmount = stack.getCount();
-                long remaining = maxAmount;
-                for (int i = 0, size = storage.getSlotCount(); i < size; i++) {
-                    SingleSlotStorage<ItemVariant> target = storage.getSlot(i);
-                    if (target.getAmount() == 0 || target.isResourceBlank()) {
-                        emptys.add(target);
-                    } else {
-                        long insert = target.insert(variant, remaining, transaction);
-                        if (insert == remaining) {
-                            transaction.commit();
-                            return maxAmount;
-                        }
-                        remaining -= insert;
-                    }
-                }
-                for (SingleSlotStorage<ItemVariant> target : emptys) {
-                    long insert = target.insert(variant, remaining, transaction);
-                    if (insert == remaining) {
-                        transaction.commit();
-                        return maxAmount;
-                    }
-                    remaining -= insert;
-                }
+    private ItemStack extractResource(ItemResource resource, int maxAmount) {
+        if (maxAmount <= 0) {
+            return ItemStack.EMPTY;
+        }
+        try (Transaction transaction = Transaction.openRoot()) {
+            int extracted = storage.extract(resource, maxAmount, transaction);
+            if (extracted > 0) {
                 transaction.commit();
-                return maxAmount - (int) remaining;
+                return onExtract(resource.toStack(extracted));
             }
         }
+        return ItemStack.EMPTY;
+    }
 
-        @Override
-        public int countSpace(ItemStack stack, int maxAmount, int start, int end) {
-            try (Transaction transaction = Transaction.openOuter()) {
-                ItemVariant variant = ItemVariant.of(stack.getItem(), stack.getComponentsPatch());
-                long remaining = maxAmount;
-                for (int i = start; i <= end; i++) {
-                    SingleSlotStorage<ItemVariant> target = storage.getSlot(i);
-                    long insert = target.insert(variant, remaining, transaction);
-                    if (insert == remaining) {
-                        transaction.abort();
-                        return maxAmount;
-                    }
-                    remaining -= insert;
-                }
-                transaction.abort();
-                return maxAmount - (int) remaining;
-            }
+    private int maxCapacity(ItemResource resource) {
+        int capacity = 0;
+        for (int i = 0, size = storage.size(); i < size; i++) {
+            capacity = Math.max(capacity, storage.getCapacityAsInt(i, resource));
         }
+        return capacity;
+    }
 
-        @Override
-        public boolean countSpace(List<ItemStack> stacks, int start, int end) {
-            int listSize = stacks.size();
-            if (listSize == 0) {
+    private int simulateInsert(int slot, ItemResource resource, int amount) {
+        try (Transaction transaction = Transaction.openRoot()) {
+            return storage.insert(slot, resource, amount, transaction);
+        }
+    }
+
+    private boolean replaceSlot(int slot, ItemStack stack, Transaction transaction) {
+        ItemResource current = storage.getResource(slot);
+        int currentAmount = storage.getAmountAsInt(slot);
+        ItemResource replacement = ItemResource.of(stack);
+        int replacementAmount = stack.isEmpty() ? 0 : stack.getCount();
+
+        if (current.equals(replacement)) {
+            if (replacementAmount == currentAmount) {
                 return true;
             }
-            if (listSize == 1) {
-                ItemStack stack = stacks.getFirst();
-                int count = stack.getCount();
-                return countSpace(stack, count, start, end) == count;
+            if (replacementAmount < currentAmount) {
+                return storage.extract(slot, current, currentAmount - replacementAmount, transaction)
+                    == currentAmount - replacementAmount;
             }
-            Object2IntLinkedOpenCustomHashMap<ItemStack> map = new Object2IntLinkedOpenCustomHashMap<>(
-                ITEM_STACK_HASH_STRATEGY);
-            for (ItemStack stack : stacks) {
-                map.merge(stack, stack.getCount(), Integer::sum);
-            }
-            Object2IntSortedMap.FastSortedEntrySet<ItemStack> entries = map.object2IntEntrySet();
-            if (entries.size() == 1) {
-                Object2IntMap.Entry<ItemStack> entry = entries.first();
-                ItemStack stack = entry.getKey();
-                int count = entry.getIntValue();
-                return countSpace(stack, count, start, end) == count;
-            }
-            try (Transaction transaction = Transaction.openOuter()) {
-                ObjectIterator<Object2IntMap.Entry<ItemStack>> iterator = entries.fastIterator();
-                do {
-                    Object2IntMap.Entry<ItemStack> entry = iterator.next();
-                    ItemStack stack = entry.getKey();
-                    int count = entry.getIntValue();
-                    ItemVariant variant = ItemVariant.of(stack.getItem(), stack.getComponentsPatch());
-                    long remaining = count;
-                    for (int i = start; i <= end; i++) {
-                        SingleSlotStorage<ItemVariant> target = storage.getSlot(i);
-                        remaining -= target.insert(variant, remaining, transaction);
-                        if (remaining == 0) {
-                            break;
-                        }
-                    }
-                    if (remaining == 0) {
-                        iterator.remove();
-                        if (entries.isEmpty()) {
-                            transaction.abort();
-                            return true;
-                        }
-                    } else if (remaining != count) {
-                        entry.setValue((int) remaining);
-                    }
-                } while (iterator.hasNext());
-                transaction.abort();
-                return false;
-            }
+            return storage.insert(slot, replacement, replacementAmount - currentAmount, transaction)
+                == replacementAmount - currentAmount;
         }
 
-        @Override
-        public int insert(ItemStack stack, int maxAmount, int start, int end) {
-            try (Transaction transaction = Transaction.openOuter()) {
-                ItemVariant variant = ItemVariant.of(stack.getItem(), stack.getComponentsPatch());
-                long remaining = maxAmount;
-                for (int i = start; i <= end; i++) {
-                    SingleSlotStorage<ItemVariant> target = storage.getSlot(i);
-                    long insert = target.insert(variant, remaining, transaction);
-                    if (insert == remaining) {
-                        transaction.commit();
-                        return maxAmount;
-                    }
-                    remaining -= insert;
-                }
-                transaction.commit();
-                return maxAmount - (int) remaining;
-            }
-        }
-
-        @Override
-        public List<ItemStack> insert(List<ItemStack> stacks) {
-            int listSize = stacks.size();
-            if (listSize == 0) {
-                return stacks;
-            }
-            if (listSize == 1) {
-                ItemStack stack = stacks.getFirst();
-                int count = stack.getCount();
-                int insert = insert(stacks.getFirst(), count);
-                if (count == insert) {
-                    return List.of();
-                }
-                if (insert == 0) {
-                    return stacks;
-                }
-                return List.of(directCopy(stack, count - insert));
-            }
-            Object2IntLinkedOpenCustomHashMap<ItemStack> map = new Object2IntLinkedOpenCustomHashMap<>(
-                ITEM_STACK_HASH_STRATEGY);
-            for (ItemStack stack : stacks) {
-                map.merge(stack, stack.getCount(), Integer::sum);
-            }
-            Object2IntSortedMap.FastSortedEntrySet<ItemStack> entries = map.object2IntEntrySet();
-            if (entries.size() == 1) {
-                Object2IntMap.Entry<ItemStack> entry = entries.first();
-                ItemStack stack = entry.getKey();
-                int count = entry.getIntValue();
-                int insert = insert(stack, count);
-                if (count == insert) {
-                    return List.of();
-                }
-                if (insert == 0) {
-                    return stacks;
-                }
-                return List.of(directCopy(stack, count - insert));
-            }
-            try (Transaction transaction = Transaction.openOuter()) {
-                boolean dirty = false;
-                Map<ItemStack, ItemVariant> cache = new IdentityHashMap<>();
-                for (int i = 0, size = storage.getSlotCount(); i < size; i++) {
-                    SingleSlotStorage<ItemVariant> slot = storage.getSlot(i);
-                    ObjectIterator<Object2IntMap.Entry<ItemStack>> iterator = entries.fastIterator();
-                    do {
-                        Object2IntMap.Entry<ItemStack> entry = iterator.next();
-                        ItemStack stack = entry.getKey();
-                        int count = entry.getIntValue();
-                        ItemVariant variant = cache.computeIfAbsent(stack, ItemVariant::of);
-                        long insert = slot.insert(variant, count, transaction);
-                        if (insert == 0) {
-                            continue;
-                        }
-                        if (insert == count) {
-                            iterator.remove();
-                            if (entries.isEmpty()) {
-                                transaction.commit();
-                                return List.of();
-                            }
-                        } else {
-                            entry.setValue(count - (int) insert);
-                        }
-                        dirty = true;
-                        break;
-                    } while (iterator.hasNext());
-                }
-                if (dirty) {
-                    List<ItemStack> result = new ArrayList<>();
-                    for (Object2IntMap.Entry<ItemStack> entry : entries) {
-                        ItemStack stack = entry.getKey();
-                        int count = entry.getIntValue();
-                        if (stack.getCount() == count) {
-                            result.add(stack);
-                        } else {
-                            result.add(directCopy(stack, count));
-                        }
-                    }
-                    transaction.commit();
-                    return result;
-                } else {
-                    return stacks;
-                }
-            }
-        }
-
-        @Override
-        public List<ItemStack> insert(List<ItemStack> stacks, int start, int end) {
-            int listSize = stacks.size();
-            if (listSize == 0) {
-                return stacks;
-            }
-            if (listSize == 1) {
-                ItemStack stack = stacks.getFirst();
-                int count = stack.getCount();
-                int insert = insert(stacks.getFirst(), count, start, end);
-                if (count == insert) {
-                    return List.of();
-                }
-                if (insert == 0) {
-                    return stacks;
-                }
-                return List.of(directCopy(stack, count - insert));
-            }
-            Object2IntLinkedOpenCustomHashMap<ItemStack> map = new Object2IntLinkedOpenCustomHashMap<>(
-                ITEM_STACK_HASH_STRATEGY);
-            for (ItemStack stack : stacks) {
-                map.merge(stack, stack.getCount(), Integer::sum);
-            }
-            Object2IntSortedMap.FastSortedEntrySet<ItemStack> entries = map.object2IntEntrySet();
-            if (entries.size() == 1) {
-                Object2IntMap.Entry<ItemStack> entry = entries.first();
-                ItemStack stack = entry.getKey();
-                int count = entry.getIntValue();
-                int insert = insert(stack, count, start, end);
-                if (count == insert) {
-                    return List.of();
-                }
-                if (insert == 0) {
-                    return stacks;
-                }
-                return List.of(directCopy(stack, count - insert));
-            }
-            try (Transaction transaction = Transaction.openOuter()) {
-                boolean dirty = false;
-                ObjectIterator<Object2IntMap.Entry<ItemStack>> iterator = entries.fastIterator();
-                do {
-                    Object2IntMap.Entry<ItemStack> entry = iterator.next();
-                    ItemStack stack = entry.getKey();
-                    int count = entry.getIntValue();
-                    ItemVariant variant = ItemVariant.of(stack.getItem(), stack.getComponentsPatch());
-                    long remaining = count;
-                    for (int i = start; i <= end; i++) {
-                        SingleSlotStorage<ItemVariant> target = storage.getSlot(i);
-                        remaining -= target.insert(variant, remaining, transaction);
-                        if (remaining == 0) {
-                            break;
-                        }
-                    }
-                    if (remaining == 0) {
-                        iterator.remove();
-                        if (entries.isEmpty()) {
-                            transaction.commit();
-                            return List.of();
-                        }
-                        dirty = true;
-                    } else if (remaining != count) {
-                        entry.setValue((int) remaining);
-                        dirty = true;
-                    }
-                } while (iterator.hasNext());
-                if (dirty) {
-                    List<ItemStack> result = new ArrayList<>();
-                    for (Object2IntMap.Entry<ItemStack> entry : entries) {
-                        ItemStack stack = entry.getKey();
-                        int count = entry.getIntValue();
-                        if (stack.getCount() == count) {
-                            result.add(stack);
-                        } else {
-                            result.add(directCopy(stack, count));
-                        }
-                    }
-                    transaction.commit();
-                    return result;
-                } else {
-                    return stacks;
-                }
-            }
-        }
-
-        @Override
-        @SuppressWarnings("UnstableApiUsage")
-        public boolean update(Predicate<ItemStack> predicate, Function<ItemStack, ItemStack> update) {
-            for (int i = 0, size = storage.getSlotCount(); i < size; i++) {
-                SingleSlotStorage<ItemVariant> slot = storage.getSlot(i);
-                ItemVariant variant = slot.getResource();
-                ItemStack stack = ((ItemVariantImpl) variant).getCachedStack();
-                if (predicate.test(stack)) {
-                    try (Transaction transaction = Transaction.openOuter()) {
-                        long amount = slot.getAmount();
-                        ItemStack replace = update.apply(new ItemStack(
-                            variant.getRegistryEntry(),
-                            (int) amount,
-                            variant.getComponents()
-                        ));
-                        if (ItemStack.isSameItemSameComponents(stack, replace)) {
-                            int count = replace.getCount();
-                            if (count == amount) {
-                                return true;
-                            }
-                            long change;
-                            if (count < amount) {
-                                change = slot.extract(variant, amount - count, transaction);
-                            } else {
-                                change = slot.insert(variant, count - amount, transaction);
-                            }
-                            if (change != 0) {
-                                transaction.commit();
-                                return true;
-                            }
-                        } else {
-                            long extract = slot.extract(variant, amount, transaction);
-                            if (extract != 0) {
-                                if (replace.isEmpty()) {
-                                    transaction.commit();
-                                    return true;
-                                }
-                                long insert = slot.insert(
-                                    ItemVariant.of(replace.getItem(), replace.getComponentsPatch()),
-                                    replace.getCount(),
-                                    transaction
-                                );
-                                if (insert != 0) {
-                                    transaction.commit();
-                                    return true;
-                                }
-                            }
-                            transaction.abort();
-                            return false;
-                        }
-                    }
-                }
-            }
+        if (!current.isEmpty() && currentAmount > 0
+            && storage.extract(slot, current, currentAmount, transaction) != currentAmount) {
             return false;
         }
-
-        @Override
-        public int getContainerSize() {
-            return storage.getSlotCount();
+        if (replacement.isEmpty() || replacementAmount <= 0) {
+            return true;
         }
+        return storage.insert(slot, replacement, replacementAmount, transaction) == replacementAmount;
     }
 
-    static class Iterator implements java.util.Iterator<ItemStack> {
-        private final java.util.Iterator<StorageView<ItemVariant>> iterator;
-
-        public Iterator(Storage<ItemVariant> storage) {
-            this.iterator = storage.iterator();
-        }
-
-        @Override
-        public boolean hasNext() {
-            return iterator.hasNext();
-        }
-
-        @Override
-        public ItemStack next() {
-            StorageView<ItemVariant> view = iterator.next();
-            if (view.getAmount() == 0 || view.isResourceBlank()) {
-                return ItemStack.EMPTY;
-            }
-            ItemVariant variant = view.getResource();
-            return new ItemStack(variant.getRegistryEntry(), (int) view.getAmount(), variant.getComponents());
-        }
-    }
 }

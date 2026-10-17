@@ -17,15 +17,13 @@ import com.zurrtum.create.infrastructure.fluids.BottleFluidInventory;
 import com.zurrtum.create.infrastructure.fluids.BucketFluidInventory;
 import com.zurrtum.create.infrastructure.fluids.FluidItemInventory;
 import com.zurrtum.create.infrastructure.fluids.FluidStack;
-import mezz.jei.api.fabric.constants.FabricTypes;
-import mezz.jei.api.fabric.ingredients.fluids.IJeiFluidIngredient;
+import mezz.jei.api.neoforge.NeoForgeTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.types.IRecipeType;
-import net.fabricmc.fabric.api.recipe.v1.ingredient.DefaultCustomIngredients;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -58,13 +56,14 @@ public class SpoutFillingCategory extends CreateCategory<RecipeHolder<FillingRec
     public static List<RecipeHolder<FillingRecipe>> getRecipes(
         RecipeMap preparedRecipes,
         Stream<ItemStack> itemStream,
-        Stream<IJeiFluidIngredient> fluidStream
+        Stream<net.neoforged.neoforge.fluids.FluidStack> fluidStream
     ) {
         List<RecipeHolder<FillingRecipe>> recipes = new ArrayList<>(preparedRecipes.byType(AllRecipeTypes.FILLING));
-        List<FluidStack> fluids = fluidStream.map(ingredient -> {
-            FluidVariant variant = ingredient.getFluidVariant();
-            return new FluidStack(variant.getFluid(), ingredient.getAmount(), variant.getComponents());
-        }).toList();
+        List<FluidStack> fluids = fluidStream.map(ingredient -> new FluidStack(
+            ingredient.getFluid(),
+            ingredient.getAmount(),
+            ingredient.getComponentsPatch()
+        )).toList();
         MutableInt i = new MutableInt();
         itemStream.forEach(stack -> {
             if (PotionFluidHandler.isPotionItem(stack)) {
@@ -110,7 +109,7 @@ public class SpoutFillingCategory extends CreateCategory<RecipeHolder<FillingRec
                                 "fill_" + itemName.getNamespace() + "_" + itemName.getPath() + "_with_" + fluidName.getNamespace() + "_" + fluidName.getPath()
                             );
                             Ingredient ingredient = stack.getComponentsPatch()
-                                .isEmpty() ? Ingredient.of(stack.getItem()) : DefaultCustomIngredients.components(stack);
+                                .isEmpty() ? Ingredient.of(stack.getItem()) : DataComponentIngredient.of(true, stack);
                             recipes.add(new RecipeHolder<>(
                                 ResourceKey.create(Registries.RECIPE, id), new FillingRecipe(
                                 result,
@@ -167,9 +166,8 @@ public class SpoutFillingCategory extends CreateCategory<RecipeHolder<FillingRec
     ) {
         AllGuiTextures.JEI_SHADOW.render(graphics, 62, 57);
         AllGuiTextures.JEI_DOWN_ARROW.render(graphics, 126, 29);
-        recipeSlotsView.findSlotByName("fluid").flatMap(view -> view.getDisplayedIngredient(FabricTypes.FLUID_STACK))
-            .ifPresent(fluidIngredient -> {
-                FluidVariant fluidVariant = fluidIngredient.getFluidVariant();
+        recipeSlotsView.findSlotByName("fluid").flatMap(view -> view.getDisplayedIngredient(NeoForgeTypes.FLUID_STACK))
+            .ifPresent(fluidStack -> {
                 int i = idGenerator.getAndIncrement();
                 if (i >= MAX) {
                     idGenerator.set(0);
@@ -177,8 +175,8 @@ public class SpoutFillingCategory extends CreateCategory<RecipeHolder<FillingRec
                 graphics.guiRenderState.submitPicturesInPictureState(new SpoutRenderState(
                     i,
                     new Matrix3x2f(graphics.pose()),
-                    fluidVariant.getFluid(),
-                    fluidVariant.getComponents(),
+                    fluidStack.getFluid(),
+                    fluidStack.getComponentsPatch(),
                     75,
                     1,
                     0

@@ -2,12 +2,14 @@ package com.zurrtum.create.foundation.blockEntity.behaviour;
 
 import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
 import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
-import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import com.zurrtum.create.infrastructure.transfer.InventoryWrapper;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Container;
 import net.minecraft.world.WorldlyContainer;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.VanillaContainerWrapper;
+import net.neoforged.neoforge.transfer.item.WorldlyContainerWrapper;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
@@ -15,7 +17,7 @@ import java.util.function.Function;
 public class CachedInventoryBehaviour<T extends SmartBlockEntity> extends BlockEntityBehaviour<T> {
     public static final BehaviourType<CachedInventoryBehaviour<?>> TYPE = new BehaviourType<>();
     private final Function<T, Container> factory;
-    private Function<Direction, Storage<ItemVariant>> getter;
+    private Function<Direction, ResourceHandler<ItemResource>> getter;
 
     public CachedInventoryBehaviour(T be, Function<T, Container> factory) {
         super(be);
@@ -23,37 +25,42 @@ public class CachedInventoryBehaviour<T extends SmartBlockEntity> extends BlockE
         reset();
     }
 
-    public static @Nullable <T extends SmartBlockEntity> Storage<ItemVariant> get(T be, @Nullable Direction side) {
+    public static @Nullable <T extends SmartBlockEntity> ResourceHandler<ItemResource> get(
+        T be,
+        @Nullable Direction side
+    ) {
         return be.getBehaviour(TYPE).get(side);
     }
 
-    public Storage<ItemVariant> get(Direction side) {
+    public @Nullable ResourceHandler<ItemResource> get(@Nullable Direction side) {
         return getter.apply(side);
     }
 
     @SuppressWarnings("unchecked")
-    private Storage<ItemVariant> firstGet(Direction direction) {
+    private @Nullable ResourceHandler<ItemResource> firstGet(Direction direction) {
         Container inventory = factory.apply(blockEntity);
         if (inventory == null) {
             return null;
         }
-        Storage<ItemVariant> storage = InventoryStorage.of(inventory, null);
-        if (inventory instanceof WorldlyContainer) {
-            Storage<ItemVariant>[] sides = new Storage[6];
+
+        ResourceHandler<ItemResource> allSlots = inventory instanceof InventoryWrapper wrapper
+            ? wrapper.resourceHandler()
+            : VanillaContainerWrapper.of(inventory);
+        if (inventory instanceof WorldlyContainer worldly) {
+            ResourceHandler<ItemResource>[] sides = new ResourceHandler[6];
             getter = side -> {
                 if (side == null) {
-                    return storage;
-                } else {
-                    int i = side.get3DDataValue();
-                    Storage<ItemVariant> sideStorage = sides[i];
-                    if (sideStorage == null) {
-                        sideStorage = sides[i] = InventoryStorage.of(inventory, side);
-                    }
-                    return sideStorage;
+                    return allSlots;
                 }
+                int index = side.get3DDataValue();
+                ResourceHandler<ItemResource> handler = sides[index];
+                if (handler == null) {
+                    handler = sides[index] = new WorldlyContainerWrapper(worldly, side);
+                }
+                return handler;
             };
         } else {
-            getter = side -> storage;
+            getter = side -> allSlots;
         }
         return getter.apply(direction);
     }

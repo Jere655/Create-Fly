@@ -1,14 +1,12 @@
 package com.zurrtum.create.client;
 
 import com.zurrtum.create.AllFluids;
+import com.zurrtum.create.AllFluidTypes;
 import com.zurrtum.create.client.content.equipment.armor.DivingLavaFogModifier;
 import com.zurrtum.create.client.infrastructure.config.AllConfigs;
 import com.zurrtum.create.client.infrastructure.fluid.FluidConfig;
 import com.zurrtum.create.client.infrastructure.fluid.FluidFogModifier;
 import com.zurrtum.create.infrastructure.fluids.FlowableFluid;
-import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandler;
-import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.client.renderer.fog.FogRenderer;
@@ -20,8 +18,10 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -48,7 +48,6 @@ public class AllFluidConfigs {
             return BiomeColors.getAverageWaterColor(mc.level, mc.player.blockPosition());
         }
     );
-    public static final boolean HAS_RENDER = FabricLoader.getInstance().isModLoaded("fabric-rendering-fluids-v1");
 
     private static void config(FlowableFluid fluid) {
         config(fluid, -1, () -> 96.0f);
@@ -90,38 +89,64 @@ public class AllFluidConfigs {
         if (fluid == Fluids.WATER || fluid == Fluids.FLOWING_WATER) {
             return WATER;
         }
-        if (!HAS_RENDER) {
-            return null;
-        }
+
         config = CACHE.get(fluid);
         if (config != null) {
             return config;
         }
-        FluidRenderHandler handler = FluidRenderHandlerRegistry.INSTANCE.get(fluid);
-        if (handler == null) {
+        IClientFluidTypeExtensions extensions = IClientFluidTypeExtensions.of(fluid);
+        if (extensions == IClientFluidTypeExtensions.DEFAULT) {
             return null;
         }
         Minecraft client = Minecraft.getInstance();
-        FluidState state = fluid.defaultFluidState();
+        FluidStack defaultStack = new FluidStack(fluid, 1);
         config = new FluidConfig(
-            () -> handler.getFluidSprites(
-                client.level,
-                client.player != null ? client.player.blockPosition() : null,
-                state
-            )[0],
-            () -> handler.getFluidSprites(
-                client.level,
-                client.player != null ? client.player.blockPosition() : null,
-                state
-            )[1],
-            component -> handler.getFluidColor(
-                client.level,
-                client.player != null ? client.player.blockPosition() : null,
-                state
-            )
+            () -> client.getAtlasManager()
+                .get(new Material(TextureAtlas.LOCATION_BLOCKS, extensions.getStillTexture(defaultStack))),
+            () -> client.getAtlasManager()
+                .get(new Material(TextureAtlas.LOCATION_BLOCKS, extensions.getFlowingTexture(defaultStack))),
+            component -> extensions.getTintColor(new FluidStack(fluid, 1, component))
         );
         CACHE.put(fluid, config);
         return config;
+    }
+
+    public static void registerClientExtensions(RegisterClientExtensionsEvent event) {
+        event.registerFluidType(createClientExtensions(AllFluids.POTION), AllFluidTypes.POTION.get());
+        event.registerFluidType(createClientExtensions(AllFluids.TEA), AllFluidTypes.TEA.get());
+        event.registerFluidType(createClientExtensions(AllFluids.MILK), AllFluidTypes.MILK.get());
+        event.registerFluidType(createClientExtensions(AllFluids.HONEY), AllFluidTypes.HONEY.get());
+        event.registerFluidType(createClientExtensions(AllFluids.CHOCOLATE), AllFluidTypes.CHOCOLATE.get());
+    }
+
+    private static IClientFluidTypeExtensions createClientExtensions(Fluid fluid) {
+        Identifier texture = BuiltInRegistries.FLUID.getKey(fluid).withPrefix("fluid/");
+        return new IClientFluidTypeExtensions() {
+            @Override
+            public Identifier getStillTexture() {
+                return texture.withSuffix("_still");
+            }
+
+            @Override
+            public Identifier getFlowingTexture() {
+                return texture.withSuffix("_flow");
+            }
+
+            @Override
+            public int getTintColor(FluidStack stack) {
+                FluidConfig config = ALL.get(fluid);
+                if (config != null) {
+                    return config.tint().apply(stack.getComponentsPatch());
+                }
+                if (fluid == AllFluids.POTION) {
+                    Optional<? extends PotionContents> potion = stack.getComponentsPatch()
+                        .get(DataComponents.POTION_CONTENTS);
+                    return (potion != null && potion.isPresent() ? potion.get() : PotionContents.EMPTY).getColor()
+                        | 0xFF000000;
+                }
+                return -1;
+            }
+        };
     }
 
     public static void register() {

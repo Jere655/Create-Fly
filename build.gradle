@@ -157,9 +157,12 @@ sourceSets {
         java.srcDir('src/client/java')
         resources.srcDir('src/client/resources')
 
-        // Optional Fabric-only integrations are excluded until each one has
-        // a tested native NeoForge replacement.
-        // Optional integrations not ported to NeoForge yet.
+        // Optional UI and mod integrations remain out of the native build until
+        // their NeoForge implementations and dependencies are available.
+        // This currently includes REI/JEI/EIV, Trinkets, ComputerCraft, and
+        // renderer-specific compatibility that only targets Fabric/Sodium APIs.
+        // Native fluid block rendering is supplied by IClientFluidTypeExtensions;
+        // core Create fluid rendering remains in the always-compiled renderers.
         // Keep Mods.java, AbstractComputerBehaviour and its event API because
         // core Create classes reference them even when ComputerCraft is absent.
         java.exclude('com/zurrtum/create/compat/CompatMod.java')
@@ -185,6 +188,16 @@ sourceSets {
         java.exclude('com/zurrtum/create/client/mixin/AnimationResourceLoaderMixin.java')
         java.exclude('com/zurrtum/create/client/mixin/WrapperBlockStateModelMixin.java')
         java.exclude('com/zurrtum/create/client/mixin/FabricBlockStateModelMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/AbstractBlockRenderContextMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/AbstractTerrainRenderContextMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/BlockRenderInfoMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/CraftingViewRecipeAccessor.java')
+        java.exclude('com/zurrtum/create/client/mixin/FabricEIVMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/FluidItemSpecialRendererMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/ItemSlotMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/RecipeViewMenuMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/RecipeViewScreenMixin.java')
+        java.exclude('com/zurrtum/create/client/mixin/ViewTypeButtonMixin.java')
     }
 }
 

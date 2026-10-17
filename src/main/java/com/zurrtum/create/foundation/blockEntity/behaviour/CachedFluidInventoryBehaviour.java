@@ -5,9 +5,9 @@ import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
 import com.zurrtum.create.infrastructure.fluids.FluidInventory;
 import com.zurrtum.create.infrastructure.fluids.SidedFluidInventory;
 import com.zurrtum.create.infrastructure.transfer.FluidInventoryStorage;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.Direction;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
@@ -15,7 +15,7 @@ import java.util.function.Function;
 public class CachedFluidInventoryBehaviour<T extends SmartBlockEntity> extends BlockEntityBehaviour<T> {
     public static final BehaviourType<CachedFluidInventoryBehaviour<?>> TYPE = new BehaviourType<>();
     private final Function<T, FluidInventory> factory;
-    private Function<Direction, Storage<FluidVariant>> getter;
+    private Function<Direction, ResourceHandler<FluidResource>> getter;
 
     public CachedFluidInventoryBehaviour(T be, Function<T, FluidInventory> factory) {
         super(be);
@@ -23,34 +23,40 @@ public class CachedFluidInventoryBehaviour<T extends SmartBlockEntity> extends B
         reset();
     }
 
-    public static @Nullable <T extends SmartBlockEntity> Storage<FluidVariant> get(T be, @Nullable Direction side) {
+    public static @Nullable <T extends SmartBlockEntity> ResourceHandler<FluidResource> get(
+        T be,
+        @Nullable Direction side
+    ) {
         return be.getBehaviour(TYPE).get(side);
     }
 
-    public Storage<FluidVariant> get(Direction side) {
+    public @Nullable ResourceHandler<FluidResource> get(@Nullable Direction side) {
         return getter.apply(side);
     }
 
     @SuppressWarnings("unchecked")
-    private Storage<FluidVariant> firstGet(Direction direction) {
+    private @Nullable ResourceHandler<FluidResource> firstGet(Direction direction) {
         FluidInventory inventory = factory.apply(blockEntity);
-        Storage<FluidVariant> storage = FluidInventoryStorage.of(inventory, null);
+        if (inventory == null) {
+            return null;
+        }
+
+        ResourceHandler<FluidResource> allSlots = FluidInventoryStorage.of(inventory, null);
         if (inventory instanceof SidedFluidInventory) {
-            Storage<FluidVariant>[] sides = new Storage[6];
+            ResourceHandler<FluidResource>[] sides = new ResourceHandler[6];
             getter = side -> {
                 if (side == null) {
-                    return storage;
-                } else {
-                    int i = side.get3DDataValue();
-                    Storage<FluidVariant> sideStorage = sides[i];
-                    if (sideStorage == null) {
-                        sideStorage = sides[i] = FluidInventoryStorage.of(inventory, side);
-                    }
-                    return sideStorage;
+                    return allSlots;
                 }
+                int index = side.get3DDataValue();
+                ResourceHandler<FluidResource> handler = sides[index];
+                if (handler == null) {
+                    handler = sides[index] = FluidInventoryStorage.of(inventory, side);
+                }
+                return handler;
             };
         } else {
-            getter = side -> storage;
+            getter = side -> allSlots;
         }
         return getter.apply(direction);
     }

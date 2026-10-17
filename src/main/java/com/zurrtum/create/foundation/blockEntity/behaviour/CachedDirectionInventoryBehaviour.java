@@ -2,11 +2,12 @@ package com.zurrtum.create.foundation.blockEntity.behaviour;
 
 import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
 import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
-import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import com.zurrtum.create.infrastructure.transfer.InventoryWrapper;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Container;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.VanillaContainerWrapper;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiFunction;
@@ -15,27 +16,33 @@ public class CachedDirectionInventoryBehaviour<T extends SmartBlockEntity> exten
     public static final BehaviourType<CachedDirectionInventoryBehaviour<?>> TYPE = new BehaviourType<>();
     private final BiFunction<T, Direction, Container> factory;
     @SuppressWarnings("unchecked")
-    Storage<ItemVariant>[] sides = new Storage[7];
+    private final ResourceHandler<ItemResource>[] sides = new ResourceHandler[7];
 
     public CachedDirectionInventoryBehaviour(T be, BiFunction<T, Direction, Container> factory) {
         super(be);
         this.factory = factory;
     }
 
-    public static @Nullable <T extends SmartBlockEntity> Storage<ItemVariant> get(T be, @Nullable Direction side) {
+    public static @Nullable <T extends SmartBlockEntity> ResourceHandler<ItemResource> get(
+        T be,
+        @Nullable Direction side
+    ) {
         return be.getBehaviour(TYPE).get(side);
     }
 
-    public Storage<ItemVariant> get(Direction side) {
-        int i = side == null ? 6 : side.get3DDataValue();
-        Storage<ItemVariant> sideStorage = sides[i];
-        if (sideStorage == null) {
+    public @Nullable ResourceHandler<ItemResource> get(@Nullable Direction side) {
+        int index = side == null ? 6 : side.get3DDataValue();
+        ResourceHandler<ItemResource> handler = sides[index];
+        if (handler == null) {
             Container inventory = factory.apply(blockEntity, side);
             if (inventory != null) {
-                sideStorage = sides[i] = InventoryStorage.of(inventory, null);
+                handler = inventory instanceof InventoryWrapper wrapper
+                    ? wrapper.resourceHandler()
+                    : VanillaContainerWrapper.of(inventory);
+                sides[index] = handler;
             }
         }
-        return sideStorage;
+        return handler;
     }
 
     @Override

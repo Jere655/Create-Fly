@@ -16,7 +16,7 @@ import com.zurrtum.create.client.catnip.render.SuperByteBufferBuilder;
 import com.zurrtum.create.client.catnip.render.SuperByteBufferCache;
 import com.zurrtum.create.client.catnip.render.SuperByteBufferCache.Compartment;
 import com.zurrtum.create.client.catnip.render.SuperRenderTypeBuffer;
-import com.zurrtum.create.client.compat.sodium.SodiumCompat;
+import com.zurrtum.create.client.foundation.compat.SodiumCompat;
 import com.zurrtum.create.client.flywheel.lib.transform.TransformStack;
 import com.zurrtum.create.client.ponder.Ponder;
 import com.zurrtum.create.client.ponder.api.element.WorldSectionElement;

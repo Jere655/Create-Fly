@@ -8,15 +8,12 @@ import com.zurrtum.create.client.catnip.gui.element.GuiGameElement;
 import com.zurrtum.create.client.catnip.gui.element.GuiGameElement.GuiBlockStateRenderBuilder;
 import com.zurrtum.create.client.catnip.gui.element.GuiGameElement.GuiPartialRenderBuilder;
 import com.zurrtum.create.client.catnip.gui.widget.ElementWidget;
-import com.zurrtum.create.client.compat.computercraft.ComputerScreen;
-import com.zurrtum.create.client.compat.computercraft.ComputerScreen.AdditionalRenderer;
 import com.zurrtum.create.client.content.trains.entity.TrainIcon;
 import com.zurrtum.create.client.flywheel.lib.model.baked.PartialModel;
 import com.zurrtum.create.client.flywheel.lib.transform.TransformStack;
 import com.zurrtum.create.client.foundation.gui.AllGuiTextures;
 import com.zurrtum.create.client.foundation.gui.AllIcons;
 import com.zurrtum.create.client.foundation.gui.widget.IconButton;
-import com.zurrtum.create.compat.computercraft.AbstractComputerBehaviour;
 import com.zurrtum.create.content.trains.entity.Carriage;
 import com.zurrtum.create.content.trains.entity.Train;
 import com.zurrtum.create.content.trains.station.GlobalStation;
@@ -30,7 +27,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import java.lang.ref.WeakReference;
 import java.util.List;
 
-public abstract class AbstractStationScreen extends AbstractSimiScreen implements AdditionalRenderer {
+public abstract class AbstractStationScreen extends AbstractSimiScreen {
 
     protected AllGuiTextures background;
     protected StationBlockEntity blockEntity;
@@ -54,17 +51,6 @@ public abstract class AbstractStationScreen extends AbstractSimiScreen implement
         renderedFlag = GuiGameElement.partial().scale(2.5F).transform(this::transform).padding(13);
         renderedItem = GuiGameElement.of(blockEntity.getBlockState().setValue(BlockStateProperties.WATERLOGGED, false))
             .rotate(-22, 63, 0).scale(2.5F).padding(17);
-        AbstractComputerBehaviour computer = blockEntity.getBehaviour(AbstractComputerBehaviour.TYPE);
-        if (computer != null && computer.hasAttachedComputer()) {
-            minecraft.setScreen(new ComputerScreen(
-                title,
-                () -> Component.literal(station.name),
-                this,
-                this,
-                computer::hasAttachedComputer
-            ));
-        }
-
         setWindowSize(background.getWidth(), background.getHeight());
         super.init();
         clearWidgets();
@@ -82,7 +68,6 @@ public abstract class AbstractStationScreen extends AbstractSimiScreen implement
         addAdditional(this, x, y, background);
     }
 
-    @Override
     public void addAdditional(Screen screen, int x, int y, AllGuiTextures background) {
         screen.addRenderableWidget(new ElementWidget(
             x + background.getWidth() + 25,
@@ -94,7 +79,6 @@ public abstract class AbstractStationScreen extends AbstractSimiScreen implement
         ).showingElement(renderedItem));
     }
 
-    @Override
     public void updateAdditional(float partialTicks) {
         if (blockEntity.resolveFlagAngle()) {
             renderedFlag.partial(getFlag(partialTicks)).tick(blockEntity.flag.settled() ? 1 : partialTicks);
@@ -133,16 +117,6 @@ public abstract class AbstractStationScreen extends AbstractSimiScreen implement
     @Override
     public void tick() {
         super.tick();
-        AbstractComputerBehaviour computer = blockEntity.getBehaviour(AbstractComputerBehaviour.TYPE);
-        if (computer != null && computer.hasAttachedComputer()) {
-            minecraft.setScreen(new ComputerScreen(
-                title,
-                () -> Component.literal(station.name),
-                this,
-                this,
-                computer::hasAttachedComputer
-            ));
-        }
     }
 
     @Override

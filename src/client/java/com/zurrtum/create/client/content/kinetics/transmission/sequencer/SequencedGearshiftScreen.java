@@ -6,15 +6,12 @@ import com.zurrtum.create.client.catnip.gui.element.GuiGameElement;
 import com.zurrtum.create.client.catnip.gui.element.GuiGameElement.GuiItemRenderBuilder;
 import com.zurrtum.create.client.catnip.gui.widget.ElementWidget;
 import com.zurrtum.create.client.catnip.lang.Lang;
-import com.zurrtum.create.client.compat.computercraft.ComputerScreen;
-import com.zurrtum.create.client.compat.computercraft.ComputerScreen.AdditionalRenderer;
 import com.zurrtum.create.client.foundation.gui.AllGuiTextures;
 import com.zurrtum.create.client.foundation.gui.AllIcons;
 import com.zurrtum.create.client.foundation.gui.widget.IconButton;
 import com.zurrtum.create.client.foundation.gui.widget.ScrollInput;
 import com.zurrtum.create.client.foundation.gui.widget.SelectionScrollInput;
 import com.zurrtum.create.client.foundation.utility.CreateLang;
-import com.zurrtum.create.compat.computercraft.AbstractComputerBehaviour;
 import com.zurrtum.create.content.kinetics.transmission.sequencer.Instruction;
 import com.zurrtum.create.content.kinetics.transmission.sequencer.InstructionSpeedModifiers;
 import com.zurrtum.create.content.kinetics.transmission.sequencer.SequencedGearshiftBlockEntity;
@@ -29,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
-public class SequencedGearshiftScreen extends AbstractSimiScreen implements AdditionalRenderer {
+public class SequencedGearshiftScreen extends AbstractSimiScreen {
     private final AllGuiTextures background = AllGuiTextures.SEQUENCER;
     private IconButton confirmButton;
     private GuiItemRenderBuilder renderedItem;
@@ -48,11 +45,6 @@ public class SequencedGearshiftScreen extends AbstractSimiScreen implements Addi
     @Override
     protected void init() {
         renderedItem = GuiGameElement.of(AllItems.SEQUENCED_GEARSHIFT.getDefaultInstance()).scale(5);
-        AbstractComputerBehaviour computer = be.getBehaviour(AbstractComputerBehaviour.TYPE);
-        if (computer != null && computer.hasAttachedComputer()) {
-            minecraft.setScreen(new ComputerScreen(title, this, this, computer::hasAttachedComputer));
-        }
-
         setWindowSize(background.getWidth(), background.getHeight());
         setWindowOffset(-20, 0);
         super.init();
@@ -79,7 +71,6 @@ public class SequencedGearshiftScreen extends AbstractSimiScreen implements Addi
         addAdditional(this, x, y, background);
     }
 
-    @Override
     public void addAdditional(Screen screen, int x, int y, AllGuiTextures background) {
         screen.addRenderableWidget(new ElementWidget(
             x + background.getWidth() + 6,
@@ -240,10 +231,6 @@ public class SequencedGearshiftScreen extends AbstractSimiScreen implements Addi
     @Override
     public void tick() {
         super.tick();
-        AbstractComputerBehaviour computer = be.getBehaviour(AbstractComputerBehaviour.TYPE);
-        if (computer != null && computer.hasAttachedComputer()) {
-            minecraft.setScreen(new ComputerScreen(title, this, this, computer::hasAttachedComputer));
-        }
     }
 
     private static String formatValue(SequencerInstructions def, int value) {

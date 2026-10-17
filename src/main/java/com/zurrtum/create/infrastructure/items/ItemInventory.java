@@ -4,7 +4,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
-public interface ItemInventory extends Container {
+public interface ItemInventory extends Container, BaseInventory {
     @Override
     @SuppressWarnings("deprecation")
     default ItemStack removeItem(int slot, int amount) {

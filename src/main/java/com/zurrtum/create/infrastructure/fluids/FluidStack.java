@@ -204,6 +204,16 @@ public class FluidStack implements DataComponentHolder {
         components.setAll(map);
     }
 
+    /** Copies the full component patch, including explicit removals, from another stack. */
+    public void copyComponentsFrom(FluidStack other) {
+        if (other == this) {
+            return;
+        }
+        components.ensureMapOwnership();
+        components.patch.clear();
+        components.patch.putAll(other.components.patch);
+    }
+
     public void capAmount(int maxCount) {
         if (!isEmpty() && getAmount() > maxCount) {
             setAmount(maxCount);

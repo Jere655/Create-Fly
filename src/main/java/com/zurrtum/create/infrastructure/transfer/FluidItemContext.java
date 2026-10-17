@@ -1,59 +1,51 @@
 package com.zurrtum.create.infrastructure.transfer;
 
-import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.item.base.SingleStackStorage;
-import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.UnmodifiableView;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.VanillaContainerWrapper;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayDeque;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.List;
+/**
+ * Mutable, single-item context for querying NeoForge item fluid capabilities.
+ * The one-slot container allows capabilities (such as buckets) to exchange the
+ * item's identity transactionally, unlike ItemAccess.forStack, which is intended
+ * only for items whose type cannot change.
+ */
+public final class FluidItemContext implements AutoCloseable {
+    private final SimpleContainer container;
+    private final ItemAccess access;
 
-public class FluidItemContext extends SingleStackStorage implements ContainerItemContext, AutoCloseable {
-    private static final Deque<FluidItemContext> POOL = new ArrayDeque<>();
-    private ItemStack stack;
+    private FluidItemContext(ItemStack stack) {
+        container = new SimpleContainer(stack.copy());
+        ResourceHandler<ItemResource> items = VanillaContainerWrapper.of(container);
+        access = ItemAccess.forHandlerIndexStrict(items, 0).oneByOne();
+    }
 
     public static FluidItemContext of(ItemStack stack) {
-        FluidItemContext ctx = POOL.pollFirst();
-        if (ctx == null) {
-            ctx = new FluidItemContext();
+        if (stack.isEmpty()) {
+            throw new IllegalArgumentException("Expected a non-empty item stack.");
         }
-        ctx.stack = stack;
-        return ctx;
+        return new FluidItemContext(stack);
+    }
+
+    @Nullable
+    public ResourceHandler<FluidResource> getFluidHandler() {
+        return access.getCapability(Capabilities.Fluid.ITEM);
+    }
+
+    public ItemStack getStack() {
+        return container.getItem(0);
     }
 
     @Override
     public void close() {
-        stack = ItemStack.EMPTY;
-        POOL.addLast(this);
-    }
-
-    @Override
-    protected ItemStack getStack() {
-        return stack;
-    }
-
-    @Override
-    protected void setStack(ItemStack stack) {
-        this.stack = stack;
-    }
-
-    @Override
-    public SingleSlotStorage<ItemVariant> getMainSlot() {
-        return this;
-    }
-
-    @Override
-    public long insertOverflow(ItemVariant itemVariant, long maxAmount, TransactionContext transactionContext) {
-        return 0;
-    }
-
-    @Override
-    public @UnmodifiableView List<SingleSlotStorage<ItemVariant>> getAdditionalSlots() {
-        return Collections.emptyList();
+        // Do not mutate the stored stack here: getContainer() callers may have
+        // retained it as the result of a simulated or committed item transfer.
+        container.setItem(0, ItemStack.EMPTY, true);
     }
 }

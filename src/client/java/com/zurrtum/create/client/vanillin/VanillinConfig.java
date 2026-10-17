@@ -1,12 +1,19 @@
 package com.zurrtum.create.client.vanillin;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 import com.zurrtum.create.catnip.config.Builder;
 import com.zurrtum.create.catnip.config.ConfigBase;
-import com.zurrtum.create.client.vanillin.config.*;
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.ModContainer;
-import net.fabricmc.loader.api.metadata.CustomValue;
-import net.fabricmc.loader.api.metadata.ModMetadata;
+import com.zurrtum.create.client.vanillin.config.CClient;
+import com.zurrtum.create.client.vanillin.config.Configurator;
+import com.zurrtum.create.client.vanillin.config.ModOverrides;
+import com.zurrtum.create.client.vanillin.config.VisualConfigValue;
+import com.zurrtum.create.client.vanillin.config.VisualOverride;
+import com.zurrtum.create.client.vanillin.config.VisualOverrideValue;
+import net.neoforged.fml.ModList;
+import net.neoforged.neoforgespi.language.IModInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,8 +21,13 @@ import java.util.Map;
 
 import static com.zurrtum.create.client.vanillin.Vanillin.MOD_ID;
 
-
 public class VanillinConfig {
+    /**
+     * Mods may set this key in their {@code [modproperties.create]} table in
+     * {@code META-INF/neoforge.mods.toml}. Its value is a JSON string with
+     * optional {@code block_entities} and {@code entities} objects, mapping
+     * registry paths to visual-config values.
+     */
     public static final String VANILLIN_OVERRIDES = "vanillin:overrides";
     private static ModOverrides overrides;
     private static CClient client;
@@ -24,74 +36,75 @@ public class VanillinConfig {
         var blockEntities = new ArrayList<VisualOverride>();
         var entities = new ArrayList<VisualOverride>();
 
-        for (ModContainer container : FabricLoader.getInstance().getAllMods()) {
-            ModMetadata meta = container.getMetadata();
-            var modid = meta.getId();
-
-            if (meta.containsCustomValue(VANILLIN_OVERRIDES)) {
-                CustomValue overridesValue = meta.getCustomValue(VANILLIN_OVERRIDES);
-
-                if (overridesValue.getType() != CustomValue.CvType.OBJECT) {
-                    Vanillin.CONFIG_LOGGER.warn(
-                        "Mod '{}' attempted to override options with an invalid value, ignoring",
-                        modid
-                    );
-                    continue;
-                }
-
-                var overrides = overridesValue.getAsObject();
-
-                readSection(blockEntities, modid, overrides, "block_entities", "block entity");
-                readSection(entities, modid, overrides, "entities", "entity");
+        for (IModInfo modInfo : ModList.get().getMods()) {
+            String modId = modInfo.getModId();
+            Object rawOverrides = modInfo.getModProperties().get(VANILLIN_OVERRIDES);
+            if (rawOverrides == null) {
+                continue;
             }
+
+            JsonObject modOverrides;
+            try {
+                JsonElement parsed = JsonParser.parseString(String.valueOf(rawOverrides));
+                if (!parsed.isJsonObject()) {
+                    throw new JsonParseException("Expected an object");
+                }
+                modOverrides = parsed.getAsJsonObject();
+            } catch (JsonParseException | IllegalStateException exception) {
+                Vanillin.CONFIG_LOGGER.warn(
+                    "Mod '{}' attempted to override options with an invalid value, ignoring",
+                    modId
+                );
+                continue;
+            }
+
+            readSection(blockEntities, modId, modOverrides, "block_entities", "block entity");
+            readSection(entities, modId, modOverrides, "entities", "entity");
         }
 
         return new ModOverrides(blockEntities, entities);
     }
 
     private static void readSection(
-        List<VisualOverride> dst,
-        String modid,
-        CustomValue.CvObject overrides,
+        List<VisualOverride> destination,
+        String modId,
+        JsonObject overrides,
         String sectionName,
         String singular
     ) {
-        if (!overrides.containsKey(sectionName)) {
+        if (!overrides.has(sectionName)) {
             return;
         }
 
-        var section = overrides.get(sectionName);
-
-        if (section.getType() != CustomValue.CvType.OBJECT) {
+        JsonElement section = overrides.get(sectionName);
+        if (!section.isJsonObject()) {
             Vanillin.CONFIG_LOGGER.warn(
                 "Mod '{}' attempted to override {} with an invalid value, ignoring",
-                modid,
+                modId,
                 sectionName
             );
             return;
         }
 
-        for (Map.Entry<String, CustomValue> entry : section.getAsObject()) {
-            var value = entry.getValue();
-            var key = entry.getKey();
-            if (value.getType() != CustomValue.CvType.STRING) {
+        for (Map.Entry<String, JsonElement> entry : section.getAsJsonObject().entrySet()) {
+            JsonElement value = entry.getValue();
+            String key = entry.getKey();
+            if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {
                 Vanillin.CONFIG_LOGGER.warn(
                     "Mod '{}' attempted to override {} '{}' with an invalid value, ignoring",
-                    modid,
+                    modId,
                     singular,
                     key
                 );
                 continue;
             }
 
-            var valueString = value.getAsString();
-
-            var parsed = VisualOverrideValue.parse(valueString);
-
+            String valueString = value.getAsString();
+            VisualConfigValue parsed = VisualOverrideValue.parse(valueString);
             if (parsed == null) {
                 Vanillin.CONFIG_LOGGER.warn(
                     "Mod '{}' attempted to override {} '{}' with an invalid value '{}', ignoring",
-                    modid,
+                    modId,
                     singular,
                     key,
                     valueString
@@ -99,7 +112,7 @@ public class VanillinConfig {
                 continue;
             }
 
-            dst.add(new VisualOverride(key, modid, parsed));
+            destination.add(new VisualOverride(key, modId, parsed));
         }
     }
 

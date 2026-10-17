@@ -11,8 +11,8 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.zurrtum.create.client.flywheel.impl.Flywheel.MOD_ID;
 
-public class FabricFlwConfig implements FlwConfig {
-    public static final FabricFlwConfig INSTANCE = new FabricFlwConfig();
+public class NeoForgeFlwConfig implements FlwConfig {
+    public static final NeoForgeFlwConfig INSTANCE = new NeoForgeFlwConfig();
     private CClient client;
 
     public void register() {

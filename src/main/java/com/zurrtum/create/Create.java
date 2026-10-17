@@ -55,6 +55,8 @@ public class Create {
 
     public Create(IEventBus modEventBus, ModContainer modContainer) {
         VERSION = modContainer.getModInfo().getVersion().toString().split("\\+")[0];
+        modEventBus.addListener(AllTransfer::registerCapabilities);
+        AllFluidTypes.register(modEventBus);
         // Fabric deferred this work through its registry bootstrap mixins.
         // NeoForge owns the construction point, so registrations must happen
         // exactly once here before common setup events are dispatched.

@@ -1,7 +1,6 @@
 package com.zurrtum.create.client;
 
 import com.zurrtum.create.client.catnip.render.SuperByteBufferCache;
-import com.zurrtum.create.client.compat.CompatMod;
 import com.zurrtum.create.client.content.contraptions.glue.SuperGlueSelectionHandler;
 import com.zurrtum.create.client.content.equipment.bell.SoulPulseEffectHandler;
 import com.zurrtum.create.client.content.equipment.potatoCannon.PotatoCannonRenderHandler;
@@ -41,6 +40,7 @@ public class Create {
 
     public Create(IEventBus modEventBus) {
         modEventBus.addListener(this::onInitializeClient);
+        modEventBus.addListener(AllFluidConfigs::registerClientExtensions);
     }
 
     private void onInitializeClient(FMLClientSetupEvent event) {
@@ -83,7 +83,8 @@ public class Create {
         AllMenuScreens.register();
         AllPotatoProjectileTransforms.register();
         PonderIndex.addPlugin(new CreatePonderPlugin());
-        CompatMod.register();
+        // Optional REI/JEI/EIV, Trinkets, and ComputerCraft client adapters are
+        // deferred until their native NeoForge integrations and dependencies are available.
     }
 
     public static Identifier asResource(String path) {

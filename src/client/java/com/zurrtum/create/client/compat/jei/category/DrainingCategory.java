@@ -19,7 +19,7 @@ import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.types.IRecipeType;
-import net.fabricmc.fabric.api.recipe.v1.ingredient.DefaultCustomIngredients;
+import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -51,7 +51,7 @@ public class DrainingCategory extends CreateCategory<RecipeHolder<EmptyingRecipe
         itemStream.forEach(stack -> {
             if (PotionFluidHandler.isPotionItem(stack)) {
                 Ingredient ingredient = stack.getComponentsPatch()
-                    .isEmpty() ? Ingredient.of(stack.getItem()) : DefaultCustomIngredients.components(stack);
+                    .isEmpty() ? Ingredient.of(stack.getItem()) : DataComponentIngredient.of(true, stack);
                 recipes.add(new RecipeHolder<>(
                     ResourceKey.create(
                         Registries.RECIPE,
@@ -79,7 +79,7 @@ public class DrainingCategory extends CreateCategory<RecipeHolder<EmptyingRecipe
                     "empty_" + itemName.getNamespace() + "_" + itemName.getPath() + "_with_" + fluidName.getNamespace() + "_" + fluidName.getPath()
                 );
                 Ingredient ingredient = stack.getComponentsPatch()
-                    .isEmpty() ? Ingredient.of(stack.getItem()) : DefaultCustomIngredients.components(stack);
+                    .isEmpty() ? Ingredient.of(stack.getItem()) : DataComponentIngredient.of(true, stack);
                 recipes.add(new RecipeHolder<>(
                     ResourceKey.create(Registries.RECIPE, id),
                     new EmptyingRecipe(capability.getContainer(), fluid, ingredient)

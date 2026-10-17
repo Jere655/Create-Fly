@@ -1,14 +1,20 @@
 package com.zurrtum.create.api.registry;
 
-import com.zurrtum.create.catnip.data.Pair;
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
+import net.neoforged.fml.loading.FMLLoader;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.ServiceLoader;
 
+/**
+ * Early Create registration hooks.
+ *
+ * <p>NeoForge extensions are discovered with Java's {@link ServiceLoader}. A
+ * provider must be listed in
+ * {@code META-INF/services/com.zurrtum.create.api.registry.CreateRegisterPlugin}
+ * in its mod jar. The built-in provider runs before third-party providers;
+ * third-party providers run in class-name order for deterministic bootstrap.
+ */
 public interface CreateRegisterPlugin {
     List<CreateRegisterPlugin> PLUGINS = createPlugins();
 
@@ -24,22 +30,16 @@ public interface CreateRegisterPlugin {
     default void onEntityAttributeRegister() {
     }
 
-    static List<CreateRegisterPlugin> createPlugins() {
-        List<EntrypointContainer<CreateRegisterPlugin>> list = FabricLoader.getInstance()
-            .getEntrypointContainers("create_plugin", CreateRegisterPlugin.class);
-        List<Pair<String, CreateRegisterPlugin>> entries = new ArrayList<>(list.size());
-        Comparator<Pair<String, CreateRegisterPlugin>> pluginComparator = Comparator.comparing((Pair<String, CreateRegisterPlugin> pair) -> !pair.getFirst()
-            .equals("create")).thenComparing(Pair::getFirst);
-        for (EntrypointContainer<CreateRegisterPlugin> container : list) {
-            Pair<String, CreateRegisterPlugin> plugin = Pair.of(
-                container.getProvider().getMetadata().getId(),
-                container.getEntrypoint()
-            );
-            int index = Collections.binarySearch(entries, plugin, pluginComparator);
-            int insertionPoint = index >= 0 ? index : -index - 1;
-            entries.add(insertionPoint, plugin);
-        }
-        return entries.stream().map(Pair::getSecond).toList();
+    private static List<CreateRegisterPlugin> createPlugins() {
+        return ServiceLoader.load(FMLLoader.getGameLayer(), CreateRegisterPlugin.class)
+            .stream()
+            .map(ServiceLoader.Provider::get)
+            .sorted(Comparator
+                .comparing((CreateRegisterPlugin plugin) -> !plugin.getClass()
+                    .getName()
+                    .equals("com.zurrtum.create.AllEarlyRegistries"))
+                .thenComparing(plugin -> plugin.getClass().getName()))
+            .toList();
     }
 
     static void registerBlock() {

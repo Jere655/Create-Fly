@@ -15,13 +15,6 @@ import com.zurrtum.create.infrastructure.transfer.FluidInventoryWrapper;
 import com.zurrtum.create.infrastructure.transfer.FluidItemContext;
 import com.zurrtum.create.infrastructure.transfer.FluidItemInventoryWrapper;
 import com.zurrtum.create.infrastructure.transfer.InventoryWrapper;
-import net.fabricmc.fabric.api.lookup.v1.block.BlockApiCache;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -31,19 +24,35 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/** Native NeoForge capability integration for Create's item and fluid inventories. */
 public class AllTransfer {
-    public static final boolean DISABLE = !FabricLoader.getInstance().isModLoaded("fabric-transfer-api-v1");
-    private static final Map<Storage<ItemVariant>, Container> WRAPPERS_ITEM = new MapMaker().weakValues().makeMap();
-    private static final Map<Storage<FluidVariant>, FluidInventory> WRAPPERS_FLUID = new MapMaker().weakValues()
+    private static final Map<ResourceHandler<ItemResource>, Container> WRAPPERS_ITEM = new MapMaker()
+        .weakKeys()
+        .weakValues()
         .makeMap();
+    private static final Map<ResourceHandler<FluidResource>, FluidInventory> WRAPPERS_FLUID = new MapMaker()
+        .weakKeys()
+        .weakValues()
+        .makeMap();
+    private static final List<Consumer<RegisterCapabilitiesEvent>> CAPABILITY_REGISTRATIONS = new ArrayList<>();
 
     public static Supplier<Container> getCacheInventory(
         ServerLevel world,
@@ -51,20 +60,24 @@ public class AllTransfer {
         Direction direction,
         BiPredicate<BlockEntity, Direction> filter
     ) {
-        if (DISABLE) {
-            return null;
-        }
-        BlockApiCache<Storage<ItemVariant>, @Nullable Direction> cache = BlockApiCache.create(
-            ItemStorage.SIDED,
+        BlockCapabilityCache<ResourceHandler<ItemResource>, @Nullable Direction> cache = BlockCapabilityCache.create(
+            Capabilities.Item.BLOCK,
             world,
-            pos
+            pos,
+            direction
         );
         return () -> {
-            Storage<ItemVariant> inventory = cache.find(direction);
-            if (inventory == null || (filter != null && !filter.test(cache.getBlockEntity(), direction))) {
+            ResourceHandler<ItemResource> handler = cache.getCapability();
+            if (handler == null) {
                 return null;
             }
-            return WRAPPERS_ITEM.computeIfAbsent(inventory, InventoryWrapper::of);
+            if (filter != null) {
+                BlockEntity blockEntity = world.getBlockEntity(pos);
+                if (blockEntity == null || !filter.test(blockEntity, direction)) {
+                    return null;
+                }
+            }
+            return WRAPPERS_ITEM.computeIfAbsent(handler, InventoryWrapper::of);
         };
     }
 
@@ -75,14 +88,17 @@ public class AllTransfer {
         @Nullable BlockEntity blockEntity,
         Direction direction
     ) {
-        if (DISABLE) {
+        ResourceHandler<ItemResource> handler = world.getCapability(
+            Capabilities.Item.BLOCK,
+            pos,
+            state,
+            blockEntity,
+            direction
+        );
+        if (handler == null) {
             return null;
         }
-        Storage<ItemVariant> inventory = ItemStorage.SIDED.find(world, pos, state, blockEntity, direction);
-        if (inventory == null) {
-            return null;
-        }
-        return WRAPPERS_ITEM.computeIfAbsent(inventory, InventoryWrapper::of);
+        return WRAPPERS_ITEM.computeIfAbsent(handler, InventoryWrapper::of);
     }
 
     public static boolean hasFluidInventory(
@@ -92,10 +108,7 @@ public class AllTransfer {
         @Nullable BlockEntity blockEntity,
         Direction direction
     ) {
-        if (DISABLE) {
-            return false;
-        }
-        return FluidStorage.SIDED.find(world, pos, state, blockEntity, direction) != null;
+        return world.getCapability(Capabilities.Fluid.BLOCK, pos, state, blockEntity, direction) != null;
     }
 
     public static Supplier<FluidInventory> getCacheFluidInventory(
@@ -103,20 +116,15 @@ public class AllTransfer {
         BlockPos pos,
         Direction direction
     ) {
-        if (DISABLE) {
-            return null;
-        }
-        BlockApiCache<Storage<FluidVariant>, @Nullable Direction> cache = BlockApiCache.create(
-            FluidStorage.SIDED,
+        BlockCapabilityCache<ResourceHandler<FluidResource>, @Nullable Direction> cache = BlockCapabilityCache.create(
+            Capabilities.Fluid.BLOCK,
             world,
-            pos
+            pos,
+            direction
         );
         return () -> {
-            Storage<FluidVariant> inventory = cache.find(direction);
-            if (inventory == null) {
-                return null;
-            }
-            return WRAPPERS_FLUID.computeIfAbsent(inventory, FluidInventoryWrapper::of);
+            ResourceHandler<FluidResource> handler = cache.getCapability();
+            return handler == null ? null : WRAPPERS_FLUID.computeIfAbsent(handler, FluidInventoryWrapper::of);
         };
     }
 
@@ -127,37 +135,35 @@ public class AllTransfer {
         @Nullable BlockEntity blockEntity,
         Direction direction
     ) {
-        if (DISABLE) {
+        ResourceHandler<FluidResource> handler = world.getCapability(
+            Capabilities.Fluid.BLOCK,
+            pos,
+            state,
+            blockEntity,
+            direction
+        );
+        if (handler == null) {
             return null;
         }
-        Storage<FluidVariant> inventory = FluidStorage.SIDED.find(world, pos, state, blockEntity, direction);
-        if (inventory == null) {
-            return null;
-        }
-        return WRAPPERS_FLUID.computeIfAbsent(inventory, FluidInventoryWrapper::of);
+        return WRAPPERS_FLUID.computeIfAbsent(handler, FluidInventoryWrapper::of);
     }
 
     public static boolean hasFluidInventory(ItemStack stack) {
-        if (DISABLE) {
-            return false;
-        }
-        FluidItemContext context = FluidItemContext.of(stack);
-        boolean result = FluidStorage.ITEM.find(stack, context) != null;
-        context.close();
-        return result;
+        return !stack.isEmpty()
+            && ItemAccess.forStack(stack).oneByOne().getCapability(Capabilities.Fluid.ITEM) != null;
     }
 
     public static FluidItemInventory getFluidInventory(ItemStack stack) {
-        if (DISABLE) {
+        if (stack.isEmpty()) {
             return null;
         }
         FluidItemContext context = FluidItemContext.of(stack);
-        Storage<FluidVariant> inventory = FluidStorage.ITEM.find(stack, context);
-        if (inventory == null) {
+        ResourceHandler<FluidResource> handler = context.getFluidHandler();
+        if (handler == null) {
             context.close();
             return null;
         }
-        return FluidItemInventoryWrapper.of(inventory, context);
+        return FluidItemInventoryWrapper.of(handler, context);
     }
 
     private static <T extends SmartBlockEntity> void registerItemSide(
@@ -165,7 +171,7 @@ public class AllTransfer {
         Function<T, Container> factory
     ) {
         BlockEntityBehaviour.add(type, (T be) -> new CachedInventoryBehaviour<>(be, factory));
-        ItemStorage.SIDED.registerForBlockEntity(CachedInventoryBehaviour::get, type);
+        CAPABILITY_REGISTRATIONS.add(event -> registerItemCapability(event, type));
     }
 
     private static <T extends SmartBlockEntity> void registerItemSide(
@@ -173,7 +179,7 @@ public class AllTransfer {
         BiFunction<T, Direction, Container> factory
     ) {
         BlockEntityBehaviour.add(type, (T be) -> new CachedDirectionInventoryBehaviour<>(be, factory));
-        ItemStorage.SIDED.registerForBlockEntity(CachedDirectionInventoryBehaviour::get, type);
+        CAPABILITY_REGISTRATIONS.add(event -> registerDirectionalItemCapability(event, type));
     }
 
     private static <T extends SmartBlockEntity> void registerFluidSide(
@@ -181,13 +187,35 @@ public class AllTransfer {
         Function<T, FluidInventory> factory
     ) {
         BlockEntityBehaviour.add(type, (T be) -> new CachedFluidInventoryBehaviour<>(be, factory));
-        FluidStorage.SIDED.registerForBlockEntity(CachedFluidInventoryBehaviour::get, type);
+        CAPABILITY_REGISTRATIONS.add(event -> registerFluidCapability(event, type));
+    }
+
+    private static <T extends SmartBlockEntity> void registerItemCapability(
+        RegisterCapabilitiesEvent event,
+        BlockEntityType<T> type
+    ) {
+        event.registerBlockEntity(Capabilities.Item.BLOCK, type, CachedInventoryBehaviour::get);
+    }
+
+    private static <T extends SmartBlockEntity> void registerDirectionalItemCapability(
+        RegisterCapabilitiesEvent event,
+        BlockEntityType<T> type
+    ) {
+        event.registerBlockEntity(Capabilities.Item.BLOCK, type, CachedDirectionInventoryBehaviour::get);
+    }
+
+    private static <T extends SmartBlockEntity> void registerFluidCapability(
+        RegisterCapabilitiesEvent event,
+        BlockEntityType<T> type
+    ) {
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, type, CachedFluidInventoryBehaviour::get);
+    }
+
+    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        CAPABILITY_REGISTRATIONS.forEach(registration -> registration.accept(event));
     }
 
     public static void register() {
-        if (DISABLE) {
-            return;
-        }
         registerItemSide(AllBlockEntityTypes.DEPOT, be -> be.depotBehaviour.itemHandler);
         registerItemSide(AllBlockEntityTypes.WEIGHTED_EJECTOR, be -> be.depotBehaviour.itemHandler);
         registerItemSide(

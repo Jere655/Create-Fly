@@ -423,7 +423,7 @@ public class BoilerData {
     }
 
     public class BoilerFluidHandler implements FluidInventory {
-        private int fill;
+        private FluidStack pendingFill = FluidStack.EMPTY;
 
         @Override
         public int size() {
@@ -432,12 +432,12 @@ public class BoilerData {
 
         @Override
         public boolean isEmpty() {
-            return true;
+            return pendingFill.isEmpty();
         }
 
         @Override
         public FluidStack getStack(int slot) {
-            return FluidStack.EMPTY;
+            return slot == 0 ? pendingFill : FluidStack.EMPTY;
         }
 
         @Override
@@ -447,20 +447,22 @@ public class BoilerData {
 
         @Override
         public void markDirty() {
-            if (fill > 0) {
-                gatheredSupply += fill;
-                fill = 0;
+            if (!pendingFill.isEmpty()) {
+                gatheredSupply += pendingFill.getAmount();
+                pendingFill = FluidStack.EMPTY;
             }
         }
 
         @Override
         public boolean isValid(int slot, FluidStack stack) {
-            return FluidHelper.isWater(stack.getFluid());
+            return slot == 0 && !stack.isEmpty() && FluidHelper.isWater(stack.getFluid());
         }
 
         @Override
         public void setStack(int slot, FluidStack stack) {
-            fill += stack.getAmount();
+            if (slot == 0) {
+                pendingFill = stack;
+            }
         }
     }
 

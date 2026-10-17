@@ -3,7 +3,6 @@ package com.zurrtum.create.client.foundation.gui.menu;
 import com.zurrtum.create.client.catnip.animation.AnimationTickHolder;
 import com.zurrtum.create.client.catnip.gui.TickableGuiEventListener;
 import com.zurrtum.create.client.catnip.gui.widget.AbstractSimiWidget;
-import com.zurrtum.create.client.compat.eiv.EivExclusionZoneHelper;
 import com.zurrtum.create.client.foundation.gui.AllGuiTextures;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -73,19 +72,16 @@ public abstract class AbstractSimiContainerScreen<T extends AbstractContainerMen
     @Override
     public void init(int width, int height) {
         super.init(width, height);
-        EivExclusionZoneHelper.setExclusionZone(getExtraAreas());
     }
 
     @Override
     public void resize(int width, int height) {
         super.resize(width, height);
-        EivExclusionZoneHelper.setExclusionZone(getExtraAreas());
     }
 
     @Override
     public void removed() {
         super.removed();
-        EivExclusionZoneHelper.removeExclusionZone();
     }
 
     @Override
