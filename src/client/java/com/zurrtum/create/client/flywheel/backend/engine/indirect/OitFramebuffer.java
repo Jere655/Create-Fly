@@ -9,6 +9,7 @@ import com.zurrtum.create.client.flywheel.backend.NoiseTextures;
 import com.zurrtum.create.client.flywheel.backend.Samplers;
 import com.zurrtum.create.client.flywheel.backend.compile.OitPrograms;
 import com.zurrtum.create.client.flywheel.backend.gl.GlCompat;
+import com.zurrtum.create.client.flywheel.backend.gl.GlGpuResources;
 import com.zurrtum.create.client.flywheel.backend.gl.GlTextureUnit;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.opengl.GL11;
@@ -72,13 +73,13 @@ public class OitFramebuffer {
         GlStateManager._bindTexture(depthBounds);
 
         Samplers.NOISE.makeActive();
-        GlStateManager._bindTexture(((GlTexture) NoiseTextures.BLUE_NOISE.getTexture()).glId());
+        GlStateManager._bindTexture(GlGpuResources.requireGlTexture(NoiseTextures.BLUE_NOISE.getTexture()).glId());
 
         GlStateManager._glBindFramebuffer(GL32.GL_FRAMEBUFFER, fbo);
         GL32.glFramebufferTexture(
             GL32.GL_FRAMEBUFFER,
             GL32.GL_DEPTH_ATTACHMENT,
-            ((GlTexture) renderTarget.getDepthTexture()).glId(),
+            GlGpuResources.requireGlTexture(renderTarget.getDepthTexture()).glId(),
             0
         );
     }
@@ -181,16 +182,16 @@ public class OitFramebuffer {
     public void composite() {
         if (Minecraft.useShaderTransparency()) {
             RenderTarget framebuffer = Minecraft.getInstance().levelRenderer.getItemEntityTarget();
-            int i = ((GlTexture) framebuffer.getColorTexture()).getFbo(
-                ((GlDevice) RenderSystem.getDevice()).directStateAccess(),
-                framebuffer.getDepthTexture()
+            int i = GlGpuResources.requireGlTexture(framebuffer.getColorTexture()).getFbo(
+                GlGpuResources.requireGlDevice(RenderSystem.getDevice()).directStateAccess(),
+                GlGpuResources.requireGlTexture(framebuffer.getDepthTexture())
             );
             GlStateManager._glBindFramebuffer(GL_FRAMEBUFFER, i);
         } else {
             RenderTarget framebuffer = Minecraft.getInstance().getMainRenderTarget();
-            int i = ((GlTexture) framebuffer.getColorTexture()).getFbo(
-                ((GlDevice) RenderSystem.getDevice()).directStateAccess(),
-                framebuffer.getDepthTexture()
+            int i = GlGpuResources.requireGlTexture(framebuffer.getColorTexture()).getFbo(
+                GlGpuResources.requireGlDevice(RenderSystem.getDevice()).directStateAccess(),
+                GlGpuResources.requireGlTexture(framebuffer.getDepthTexture())
             );
             GlStateManager._glBindFramebuffer(GL_FRAMEBUFFER, i);
         }
@@ -222,9 +223,9 @@ public class OitFramebuffer {
 
 
         RenderTarget framebuffer = Minecraft.getInstance().getMainRenderTarget();
-        int i = ((GlTexture) framebuffer.getColorTexture()).getFbo(
-            ((GlDevice) RenderSystem.getDevice()).directStateAccess(),
-            framebuffer.getDepthTexture()
+        int i = GlGpuResources.requireGlTexture(framebuffer.getColorTexture()).getFbo(
+            GlGpuResources.requireGlDevice(RenderSystem.getDevice()).directStateAccess(),
+            GlGpuResources.requireGlTexture(framebuffer.getDepthTexture())
         );
         GlStateManager._glBindFramebuffer(GL_FRAMEBUFFER, i);
     }

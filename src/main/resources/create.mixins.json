@@ -72,7 +72,6 @@
     "StructureTemplateMixin",
     "SynchedEntityDataBuilderMixin",
     "SynchedEntityDataMixin",
-    "TooltipContextMixin",
     "UtilMixin",
     "WeatheringCopperMixin",
     "WorldlyContainerMixin"

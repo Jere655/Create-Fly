@@ -21,7 +21,7 @@ public class PersistentEntitySectionManagerCallbackMixin<T extends EntityAccess>
     private long currentSectionKey;
 
     @Inject(method = "onMove()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/entity/PersistentEntitySectionManager$Callback;updateStatus(Lnet/minecraft/world/level/entity/Visibility;Lnet/minecraft/world/level/entity/Visibility;)V"))
-    private void onEnteringSection(CallbackInfo ci, @Local long oldPos) {
+    private void onEnteringSection(CallbackInfo ci, @Local(index = 6) long oldPos) {
         if (entity instanceof Entity realEntity) {
             CarriageEntityHandler.onEntityEnterSection(realEntity, oldPos, currentSectionKey);
         }

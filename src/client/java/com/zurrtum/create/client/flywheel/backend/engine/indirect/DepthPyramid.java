@@ -5,6 +5,7 @@ import com.mojang.blaze3d.opengl.GlTexture;
 import com.mojang.blaze3d.textures.GpuTexture;
 import com.zurrtum.create.client.flywheel.backend.compile.IndirectPrograms;
 import com.zurrtum.create.client.flywheel.backend.gl.GlTextureUnit;
+import com.zurrtum.create.client.flywheel.backend.gl.GlGpuResources;
 import com.zurrtum.create.client.flywheel.lib.math.MoreMath;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.opengl.GL32;
@@ -32,7 +33,7 @@ public class DepthPyramid {
         createPyramidMips(mipLevels, width, height);
 
         GpuTexture depthTexture = mainRenderTarget.getDepthTexture();
-        int depthBufferId = depthTexture != null ? ((GlTexture) depthTexture).glId() : 0;
+        int depthBufferId = depthTexture != null ? GlGpuResources.requireGlTexture(depthTexture).glId() : 0;
 
         GL46.glMemoryBarrier(GL46.GL_FRAMEBUFFER_BARRIER_BIT);
 

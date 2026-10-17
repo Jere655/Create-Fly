@@ -5,9 +5,9 @@ import com.zurrtum.create.AllBlocks;
 import com.zurrtum.create.client.infrastructure.model.*;
 import net.minecraft.client.renderer.block.model.BlockStateModel.UnbakedRoot;
 import net.minecraft.client.renderer.item.ItemModel;
-import net.minecraft.client.renderer.item.ItemModels;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
+import net.neoforged.neoforge.client.event.RegisterItemModelsEvent;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.HashMap;
@@ -21,23 +21,30 @@ public class AllModels {
         ALL.put(block, resolver);
     }
 
-    public static <T extends ItemModel.Unbaked> void register(Identifier id, MapCodec<T> codec) {
-        ItemModels.ID_MAPPER.put(id, codec);
+    private static <T extends ItemModel.Unbaked> void register(
+        RegisterItemModelsEvent event,
+        Identifier id,
+        MapCodec<T> codec
+    ) {
+        event.register(id, codec);
+    }
+
+    public static void registerItemModels(RegisterItemModelsEvent event) {
+        register(event, GogglesModel.ID, GogglesModel.Unbaked.CODEC);
+        register(event, WrenchModel.ID, WrenchModel.Unbaked.CODEC);
+        register(event, SandPaperModel.ID, SandPaperModel.Unbaked.CODEC);
+        register(event, ClipboardModel.ID, ClipboardModel.Unbaked.CODEC);
+        register(event, PotatoCannonModel.ID, PotatoCannonModel.Unbaked.CODEC);
+        register(event, ExtendoGripModel.ID, ExtendoGripModel.Unbaked.CODEC);
+        register(event, LinkedControllerModel.ID, LinkedControllerModel.Unbaked.CODEC);
+        register(event, CardboardSwordModel.ID, CardboardSwordModel.Unbaked.CODEC);
+        register(event, SymmetryWandModel.ID, SymmetryWandModel.Unbaked.CODEC);
+        register(event, WorldshaperModel.ID, WorldshaperModel.Unbaked.CODEC);
+        register(event, OversizedModel.ID, OversizedModel.Unbaked.CODEC);
+        register(event, TranslucentModel.ID, TranslucentModel.Unbaked.CODEC);
     }
 
     public static void register() {
-        register(GogglesModel.ID, GogglesModel.Unbaked.CODEC);
-        register(WrenchModel.ID, WrenchModel.Unbaked.CODEC);
-        register(SandPaperModel.ID, SandPaperModel.Unbaked.CODEC);
-        register(ClipboardModel.ID, ClipboardModel.Unbaked.CODEC);
-        register(PotatoCannonModel.ID, PotatoCannonModel.Unbaked.CODEC);
-        register(ExtendoGripModel.ID, ExtendoGripModel.Unbaked.CODEC);
-        register(LinkedControllerModel.ID, LinkedControllerModel.Unbaked.CODEC);
-        register(CardboardSwordModel.ID, CardboardSwordModel.Unbaked.CODEC);
-        register(SymmetryWandModel.ID, SymmetryWandModel.Unbaked.CODEC);
-        register(WorldshaperModel.ID, WorldshaperModel.Unbaked.CODEC);
-        register(OversizedModel.ID, OversizedModel.Unbaked.CODEC);
-        register(TranslucentModel.ID, TranslucentModel.Unbaked.CODEC);
 
         BiFunction<BlockState, UnbakedRoot, UnbakedRoot> andesiteCasing = CTModel.of(AllCTBehaviours.ANDESITE_CASING);
         BiFunction<BlockState, UnbakedRoot, UnbakedRoot> brassCasing = CTModel.of(AllCTBehaviours.BRASS_CASING);

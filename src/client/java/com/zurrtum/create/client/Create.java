@@ -40,6 +40,7 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
+import net.neoforged.neoforge.client.event.RegisterItemModelsEvent;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
 import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
@@ -73,6 +74,7 @@ public class Create {
         modEventBus.addListener(Create::registerRenderBuffers);
         modEventBus.addListener(Create::registerGuiLayers);
         modEventBus.addListener(Create::registerPictureInPictureRenderers);
+        modEventBus.addListener(RegisterItemModelsEvent.class, AllModels::registerItemModels);
         modEventBus.addListener(AllFluidConfigs::registerClientExtensions);
         NeoForge.EVENT_BUS.addListener(Create::onKeyInput);
         NeoForge.EVENT_BUS.addListener(Create::onRenderGuiPre);

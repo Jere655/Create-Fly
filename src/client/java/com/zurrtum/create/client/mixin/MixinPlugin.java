@@ -17,7 +17,6 @@ public class MixinPlugin implements IMixinConfigPlugin {
         // NeoForge's IClientFluidTypeExtensions instead.
         mixins = List.of(
             "BlockEntityTypeMixin",
-            "CreativeModeInventoryScreenMixin",
             "EntityTypeMixin"
         );
     }

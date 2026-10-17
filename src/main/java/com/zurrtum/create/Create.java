@@ -74,6 +74,7 @@ public class Create {
         // Fabric initialized these static registries during loader bootstrap.
         // NeoForge opens registries during RegisterEvent, after mod construction.
         modEventBus.addListener(RegisterEvent.class, this::register);
+        modEventBus.addListener(RegisterEvent.class, AllCreativeModeTabs::register);
         AllConfigs.register();
     }
 
@@ -117,7 +118,6 @@ public class Create {
         AllDataComponents.register();
         AllDamageTypes.register();
         AllPackets.register();
-        AllCreativeModeTabs.register();
         AllContraptionTypes.register();
         AllEntityTypes.register();
         AllBlockEntityTypes.register();

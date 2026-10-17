@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(ExperimentalRedstoneWireEvaluator.class)
 public class ExperimentalRedstoneWireEvaluatorMixin {
-    @WrapOperation(method = "method_61833(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;neighborChanged(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/world/level/redstone/Orientation;Z)V"))
+    @WrapOperation(method = "lambda$causeNeighborUpdates$0(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;neighborChanged(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/world/level/redstone/Orientation;Z)V"))
     private void updateNeighbor(
         Level world,
         BlockState state,
@@ -32,14 +32,14 @@ public class ExperimentalRedstoneWireEvaluatorMixin {
         original.call(world, state, neighborPos, sourceBlock, orientation, notify);
     }
 
-    @WrapOperation(method = "method_61833(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;neighborChanged(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/world/level/redstone/Orientation;)V"))
+    @WrapOperation(method = "lambda$causeNeighborUpdates$0(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;neighborChanged(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/world/level/redstone/Orientation;)V"))
     private void updateNeighbor(
         Level world,
         BlockPos neighborPos,
         Block sourceBlock,
         Orientation orientation,
         Operation<Void> original,
-        @Local(ordinal = 1) BlockPos pos
+        @Local(argsOnly = true) BlockPos pos
     ) {
         BlockState state = world.getBlockState(neighborPos);
         if (state.getBlock() instanceof NeighborUpdateListeningBlock block) {

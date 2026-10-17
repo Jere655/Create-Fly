@@ -8,6 +8,7 @@ import com.mojang.blaze3d.textures.FilterMode;
 import com.mojang.blaze3d.textures.GpuSampler;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.zurrtum.create.client.flywheel.backend.Samplers;
+import com.zurrtum.create.client.flywheel.backend.gl.GlGpuResources;
 import com.zurrtum.create.client.flywheel.backend.gl.GlTextureUnit;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
@@ -39,7 +40,7 @@ public class TextureBinder {
 
     private static void setupTexture(GlTextureUnit unit, GpuTextureView textureView, GpuSampler sampler) {
         unit.makeActive();
-        GlTexture texture = (GlTexture) textureView.texture();
+        GlTexture texture = GlGpuResources.requireGlTexture(textureView.texture());
         int target;
         if ((texture.usage() & 16) != 0) {
             target = GL13.GL_TEXTURE_CUBE_MAP;
@@ -48,7 +49,7 @@ public class TextureBinder {
             target = GL_TEXTURE_2D;
             GlStateManager._bindTexture(texture.glId());
         }
-        GL33C.glBindSampler(unit.number, ((GlSampler) sampler).getId());
+        GL33C.glBindSampler(unit.number, GlGpuResources.requireGlSampler(sampler).getId());
         int mipLevel = textureView.baseMipLevel();
         GlStateManager._texParameter(target, GL12.GL_TEXTURE_BASE_LEVEL, mipLevel);
         GlStateManager._texParameter(target, GL12.GL_TEXTURE_MAX_LEVEL, mipLevel + textureView.mipLevels() - 1);
@@ -64,6 +65,7 @@ public class TextureBinder {
      * @return The texture.
      */
     public static int byName(Identifier texture) {
-        return ((GlTexture) Minecraft.getInstance().getTextureManager().getTexture(texture).getTexture()).glId();
+        return GlGpuResources.requireGlTexture(Minecraft.getInstance().getTextureManager().getTexture(texture)
+            .getTexture()).glId();
     }
 }

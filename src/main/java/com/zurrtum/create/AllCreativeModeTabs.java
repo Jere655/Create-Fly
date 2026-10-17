@@ -1,7 +1,5 @@
 package com.zurrtum.create;
 
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -10,6 +8,8 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTab.ItemDisplayParameters;
 import net.minecraft.world.item.CreativeModeTab.Output;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.CreativeModeTabs;
+import net.neoforged.neoforge.registries.RegisterEvent;
 
 import static com.zurrtum.create.Create.MOD_ID;
 
@@ -23,17 +23,19 @@ public class AllCreativeModeTabs {
         Identifier.fromNamespaceAndPath(MOD_ID, "palettes")
     );
 
-    public static void register() {
-        Registry.register(
-            BuiltInRegistries.CREATIVE_MODE_TAB,
-            BASE_GROUP,
-            CreativeModeTab.builder(null, -1).title(Component.translatable("itemGroup.create.base"))
+    public static void register(RegisterEvent event) {
+        event.register(
+            Registries.CREATIVE_MODE_TAB,
+            BASE_GROUP.identifier(),
+            () -> CreativeModeTab.builder().title(Component.translatable("itemGroup.create.base"))
+                .withTabsBefore(CreativeModeTabs.SPAWN_EGGS)
                 .icon(() -> new ItemStack(AllBlocks.COGWHEEL)).displayItems(AllCreativeModeTabs::base).build()
         );
-        Registry.register(
-            BuiltInRegistries.CREATIVE_MODE_TAB,
-            PALETTES_GROUP,
-            CreativeModeTab.builder(null, -1).title(Component.translatable("itemGroup.create.palettes"))
+        event.register(
+            Registries.CREATIVE_MODE_TAB,
+            PALETTES_GROUP.identifier(),
+            () -> CreativeModeTab.builder().title(Component.translatable("itemGroup.create.palettes"))
+                .withTabsBefore(BASE_GROUP)
                 .icon(() -> new ItemStack(AllBlocks.ORNATE_IRON_WINDOW)).displayItems(AllCreativeModeTabs::palettes)
                 .build()
         );

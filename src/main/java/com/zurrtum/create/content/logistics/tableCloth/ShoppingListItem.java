@@ -4,7 +4,6 @@ import com.zurrtum.create.AllDataComponents;
 import com.zurrtum.create.catnip.data.Couple;
 import com.zurrtum.create.content.logistics.BigItemStack;
 import com.zurrtum.create.content.logistics.packager.InventorySummary;
-import com.zurrtum.create.foundation.item.TooltipWorldContext;
 import com.zurrtum.create.infrastructure.component.ShoppingList;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -51,8 +50,9 @@ public class ShoppingListItem extends Item {
     ) {
         ShoppingList list = getList(stack);
 
-        if (list != null && context instanceof TooltipWorldContext worldContext) {
-            Couple<InventorySummary> lists = list.bakeEntries(worldContext.create$getWorld(), null);
+        Level level = context.level();
+        if (list != null && level != null) {
+            Couple<InventorySummary> lists = list.bakeEntries(level, null);
 
             for (InventorySummary items : lists) {
                 List<BigItemStack> entries = items.getStacksByCount();

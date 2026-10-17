@@ -11,6 +11,7 @@ import com.zurrtum.create.client.flywheel.api.material.Material;
 import com.zurrtum.create.client.flywheel.api.material.Transparency;
 import com.zurrtum.create.client.flywheel.api.material.WriteMask;
 import com.zurrtum.create.client.flywheel.backend.Samplers;
+import com.zurrtum.create.client.flywheel.backend.gl.GlGpuResources;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import org.jetbrains.annotations.Nullable;
@@ -52,7 +53,7 @@ public final class MaterialRenderState {
     private static void setupTexture(Material material) {
         Samplers.DIFFUSE.makeActive();
         AbstractTexture texture = Minecraft.getInstance().getTextureManager().getTexture(material.texture());
-        GlTexture glTexture = (GlTexture) texture.getTexture();
+        GlTexture glTexture = GlGpuResources.requireGlTexture(texture.getTexture());
         int target;
         if ((glTexture.usage() & 16) != 0) {
             target = GL13.GL_TEXTURE_CUBE_MAP;
@@ -63,13 +64,13 @@ public final class MaterialRenderState {
         }
         GpuSampler textureSampler = texture.getSampler();
         FilterMode filterMode = material.blur() ? FilterMode.LINEAR : FilterMode.NEAREST;
-        GlSampler sampler = (GlSampler) RenderSystem.getSamplerCache().getSampler(
+        GlSampler sampler = GlGpuResources.requireGlSampler(RenderSystem.getSamplerCache().getSampler(
             textureSampler.getAddressModeU(),
             textureSampler.getAddressModeV(),
             filterMode,
             filterMode,
             material.mipmap()
-        );
+        ));
         GL33C.glBindSampler(Samplers.DIFFUSE.number, sampler.getId());
         GpuTextureView textureView = texture.getTextureView();
         int mipLevel = textureView.baseMipLevel();
@@ -181,9 +182,9 @@ public final class MaterialRenderState {
 
     public static void setupFrameBuffer() {
         RenderTarget framebuffer = Minecraft.getInstance().getMainRenderTarget();
-        int i = ((GlTexture) framebuffer.getColorTexture()).getFbo(
-            ((GlDevice) RenderSystem.getDevice()).directStateAccess(),
-            framebuffer.useDepth ? framebuffer.getDepthTexture() : null
+        int i = GlGpuResources.requireGlTexture(framebuffer.getColorTexture()).getFbo(
+            GlGpuResources.requireGlDevice(RenderSystem.getDevice()).directStateAccess(),
+            framebuffer.useDepth ? GlGpuResources.requireGlTexture(framebuffer.getDepthTexture()) : null
         );
         GlStateManager._glBindFramebuffer(GlConst.GL_FRAMEBUFFER, i);
     }

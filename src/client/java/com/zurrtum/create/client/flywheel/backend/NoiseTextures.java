@@ -8,11 +8,11 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.AddressMode;
 import com.mojang.blaze3d.textures.FilterMode;
 import com.zurrtum.create.client.flywheel.backend.gl.GlTextureUnit;
+import com.zurrtum.create.client.flywheel.backend.gl.GlGpuResources;
 import com.zurrtum.create.client.flywheel.lib.util.ResourceUtil;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.neoforged.neoforge.client.blaze3d.validation.ValidationGpuTexture;
 import org.jetbrains.annotations.UnknownNullability;
 import org.lwjgl.opengl.GL32;
 import org.lwjgl.opengl.GL33C;
@@ -43,22 +43,12 @@ public class NoiseTextures {
 
             GlTextureUnit.T0.makeActive();
 
-            var gpuTexture = BLUE_NOISE.getTexture();
-            if (gpuTexture instanceof ValidationGpuTexture validationTexture) {
-                gpuTexture = validationTexture.getRealTexture();
-            }
-
-            if (!(gpuTexture instanceof GlTexture glTexture)) {
-                throw new IllegalStateException(
-                    "Flywheel blue-noise texture is not backed by an OpenGL texture: "
-                        + gpuTexture.getClass().getName()
-                );
-            }
+            GlTexture glTexture = GlGpuResources.requireGlTexture(BLUE_NOISE.getTexture());
 
             GlStateManager._bindTexture(glTexture.glId());
 
-            GlSampler sampler = (GlSampler) RenderSystem.getSamplerCache()
-                .getSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, false);
+            GlSampler sampler = GlGpuResources.requireGlSampler(RenderSystem.getSamplerCache()
+                .getSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, false));
             GL33C.glBindSampler(GlTextureUnit.T0.number, sampler.getId());
             GlStateManager._texParameter(GL32.GL_TEXTURE_2D, GL32.GL_TEXTURE_WRAP_S, GL32.GL_REPEAT);
             GlStateManager._texParameter(GL32.GL_TEXTURE_2D, GL32.GL_TEXTURE_WRAP_T, GL32.GL_REPEAT);

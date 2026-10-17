@@ -19,8 +19,6 @@ public class MixinPlugin implements IMixinConfigPlugin {
         // NeoForge does not use Fabric API's registry bootstrap path.
         Create.Lazy = false;
 
-        mixins.add("CreativeModeTabMixin");
-        mixins.add("CreativeModeTabsMixin");
         mixins.add("DimensionDataStorageMixin");
 
         // ComputerCraft, Architectury, JEI and Fabric resource-loader
